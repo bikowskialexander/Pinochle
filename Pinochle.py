@@ -80,6 +80,9 @@ class Pinochle:
             self.stage = "MELD"
         elif self.stage == "MELD":
             self.do_meld()
+            self.stage = "TRICKS"
+        elif self.stage == "TRICKS":
+            self.do_tricks()
 
     def do_bid(self):
         player_left_count = 4
