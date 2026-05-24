@@ -1,0 +1,31 @@
+
+SUITS = ['HEARTS', 'SPADES', 'DIAMONDS', 'CLUBS']
+CARDS = ['9', 'J', 'Q', 'K', '10', 'A']
+MELD_OPTIONS = ["nine of trumps", "marriage", "royal marriage", "run", "pinochle", "double pinochle", "aces", "kings", "queens", "jacks"]
+
+
+NINES_POINTS = 10
+MARRIAGE_POINTS = 20
+ROYAL_MARRIAGE_POINTS = 40
+PINOCHLE_POINTS = 40
+DOUBLE_PINOCHLE_POINTS = 300
+RUN_POINTS = 150
+ACES_POINTS = 100
+KINGS_POINTS = 80
+QUEENS_POINTS = 60
+JACKS_POINTS = 40
+
+
+MELD_POINTS = {"nine of trumps": NINES_POINTS, 
+               "marriage": MARRIAGE_POINTS,
+               "royal marriage": ROYAL_MARRIAGE_POINTS,
+               "run": RUN_POINTS,
+               "aces": ACES_POINTS,
+               "kings": KINGS_POINTS,
+               "queens": QUEENS_POINTS,
+               "jacks": JACKS_POINTS,
+               "pinochle": PINOCHLE_POINTS,
+               "double pinochle": DOUBLE_PINOCHLE_POINTS} 
+
+
+
