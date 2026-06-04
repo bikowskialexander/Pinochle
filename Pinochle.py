@@ -4,54 +4,26 @@ import checks
 import Deck
 import Meld
 import ast 
+import copy
+from UI import PinochleUI
 
 from Constants import *
 
-class Opponent:
-
-    def __init__(self) -> None:
-        self.messages = []
-
-    def get_bid(self, current) -> str:
-        if random.random() > 0.5:
-            return "PASS" 
-        else:
-            return 10 + current
-        
-    def get_trumps(self):
-        return "HEARTS"
-        
-    def get_pass(self, hand : dict) -> str:
-        lst = []
-        count = 0
-        suit_counter = 0
-        for suit in SUITS:
-            while count < 4 and len(hand[suit]) > suit_counter:
-                value = hand[suit][suit_counter]
-                lst.append([suit, value])
-                suit_counter += 1
-                count += 1
-            else:
-                suit_counter = 0
-        return str(lst)
-
-    def get_meld(self, hand, trumps) -> str:
-        meld = Meld.get_melds(hand, trumps)
-        return meld 
-
-    def get_tricks(self) -> str:
-        pass 
-
+from Opponent import Opponent, Ollama_Opponent
 
 class Pinochle:
 
     def __init__(self) -> None:
-        self.players = [Opponent(), Opponent(), Opponent(), Opponent()]
+        self.players = [Ollama_Opponent(), Ollama_Opponent(), Ollama_Opponent(), Ollama_Opponent()]
         self.move_index = 0
         self.stage = "BID"
         self.current_bid = 250
         self.hands = []
         self.point_values = [0, 0]
+        self.tricks_left = 12
+        self.ui = PinochleUI()
+
+        self.player_index = 1
 
         self.setup()
 
@@ -59,6 +31,7 @@ class Pinochle:
         deck = Deck.generate_ordered_deck()
         for i in range(4):
             self.hands.append(Deck.draw_hand(deck, 12))
+        self.ui.update_hands(self.hands)
 
     def define_order(self):
         self.order = []
@@ -83,6 +56,11 @@ class Pinochle:
             self.stage = "TRICKS"
         elif self.stage == "TRICKS":
             self.do_tricks()
+            if self.game_over() != -1:
+                self.stage = "GAME OVER"
+            elif self.tricks_left <= 0:
+                self.stage = "BID"
+                self.tricks_left = 12 
 
     def do_bid(self):
         player_left_count = 4
@@ -91,9 +69,9 @@ class Pinochle:
             for i in self.order:
                 if player_left_count > 1:
                     if players_left[i]:
-                        bid = self.players[i].get_bid(self.current_bid)
+                        bid = self.players[i].get_bid(self.current_bid, self.hands[i])
                         while not checks.is_a_bid(bid, self.current_bid):
-                            bid = self.players[i].get_bid(self.current_bid)
+                            bid = self.players[i].get_bid(self.current_bid, self.hands[i])
                         if bid != "PASS":
                             self.current_bid = bid
                         else:
@@ -105,15 +83,15 @@ class Pinochle:
                             return i
 
     def do_trumps(self):
-        request = self.players[self.bid_taker_index].get_trumps() 
+        request = self.players[self.bid_taker_index].get_trumps(self.hands[self.bid_taker_index]) 
         while not checks.is_a_suit(request):
-            request = self.players[self.bid_taker_index].get_trumps() 
+            request = self.players[self.bid_taker_index].get_trumps(self.hands[self.bid_taker_index]) 
         return request.upper()
     
     def get_valid_pass(self, index):
-        p = self.players[index].get_pass(self.hands[index])
+        p = self.players[index].get_pass(self.hands[index], self.trumps)
         while not checks.check_passed(self.hands[index], p):
-            p = self.players[index].get_pass(self.hands[index])
+            p = self.players[index].get_pass(self.hands[index], self.trumps)
         return p 
 
     def do_pass(self):
@@ -154,13 +132,34 @@ class Pinochle:
             else:
                 self.point_values[1] += self.meld_value(meld)
 
+    def game_over(self):
+        if self.point_values[0] >= 250:
+            return 0
+        elif self.point_values[1] >= 250:
+            return 1
+        return -1
+
     def do_tricks(self):
-        pass 
+        self.move_index = self.bid_taker_index
+        self.define_order()
+
+        self.played = []
+        for i in self.order:
+            trick = self.players[i].get_tricks(self.hands[i], self.trumps, self.played) 
+            while not checks.check_trick(self.played, self.hands[i], trick, self.trumps):
+                trick = self.players[i].get_tricks(self.hands[i], self.trumps, self.played) 
+            self.hands[i][trick[0]].remove(trick[1])
+            self.played.append(trick)
+        self.tricks_left -= 1
+
+    def run(self):
+        self.ui.render()
+        while 1:
+            self.step()
+            self.ui.update_hands(self.hands)
+            self.ui.render()
 
 p = Pinochle()
-p.step()
-p.step()
-p.step()
-p.step()
+p.run()
 
 

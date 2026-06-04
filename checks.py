@@ -235,3 +235,100 @@ def check_four_of_a_kind_meld(cards : list, kind):
         return card[0][1] == 'Q'
     if kind == 'jacks':
         return card[0][1] == 'J'
+    
+
+# ---------------------------------------------------
+#                   For Tricks
+# ---------------------------------------------------
+
+def check_trick_first(hand, card):
+    try:
+        card = str(card)
+        card = ast.literal_eval(card)
+        if is_a_card(card):
+            if has_card(hand, card):
+                return True
+        return False
+    except:
+        return False
+    
+def check_tricks_after_first(card, hand, played, trumps):
+    try:
+        if check_trick_first(hand, card)== False:
+            return False
+        
+        card = str(card)
+        card = ast.literal_eval(card)
+
+        suit = played[0][0].lower()
+        max_value_of_suit = CARDS.index(played[0][1])
+        for p in played[1::]:
+            if p[0] == suit:
+                index = CARDS.index(p[1])
+                if index > max_value_of_suit:
+                    max_value_of_suit = index
+
+        if card[0].lower() == suit.lower(): # if the same suit
+            index = CARDS.index(card[1])
+            if index > max_value_of_suit:
+                return True
+            else:
+                for c in hand[suit]:
+                    if CARDS.index(c) > max_value_of_suit:
+                        return False  
+                if CARDS.index(card[0]) == max_value_of_suit:
+                    return True
+        else: # if a different suit
+            if len(hand[suit]) == 0: # if none of suit
+                
+                if card[1].lower() == trumps:
+                    # Check for highest trump
+                    max_trump_index = None
+                    for p in played[1::]:
+                        index = CARDS.index(p[1])
+                        if p[0] == trumps:
+                            if max_trump_index == None or index > max_trump_index:
+                                max_trump_index = index
+                    if max_trump_index == None:
+                        return True
+                    if len(hand[trumps]) == 1:
+                        return True
+                    if len(hand[trumps]) == 2:
+                        if hand[trumps][0] == hand[trumps][1]:
+                            return True
+                    if CARDS.index(card[1]) > max_trump_index: # if it is highest yet
+                        return True
+                    else:
+                        if CARDS.index(card[1]) == max_trump_index: # if played the same
+                            # check for higher trumps
+                            for c in hand[trumps]: 
+                                if CARDS.index(c) > max_trump_index: # if a higher exists
+                                    return False
+                            return True  
+                        else:
+                            # Check for other higher
+                            for c in hand[trumps]:
+                                if CARDS.index(c) > max_trump_index:
+                                    return False
+                            return True # there are no trumps higher
+                else: # if did not play trumps
+                    if len(hand[trumps]) == 0:
+                        return True
+                    else:
+                        return False
+            else:
+                return False
+    except:
+        return False
+
+def check_trick(played, hand, card, trumps):
+    if len(played) == 0:
+        return check_trick_first(hand, card)
+    else:
+        return check_tricks_after_first(card, hand, played, trumps)
+
+
+
+
+
+
