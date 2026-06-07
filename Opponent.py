@@ -60,7 +60,7 @@ class Ollama_Opponent(Opponent):
 
     def __init__(self) -> None:
         super().__init__()
-        self.model = "granite4:1b"
+        self.model = "nemotron-mini:4b"
 
     def _parse_card(self, card_str: str) -> Tuple[str, str]:
         """
@@ -110,22 +110,24 @@ class Ollama_Opponent(Opponent):
         except ValueError:
             return False
         
+    def _message_and_response(self, new_message_content):
+        new_message = {'role':'user', 'content':new_message_content}
+        self.messages.append(new_message)
+        response = chat(model=self.model, messages=self.messages)['message']['content']
+        structured_response = {'role':'assistant', 'content':response}
+        self.messages.append(structured_response)
+        return response.strip()
+        
     def get_bid(self, current, hand):
         new_message_content = "You are in the bid phase. Either output PASS or a bid."
         new_message_content += "\nThe current bid is " + str(current)
         new_message_content += "Here is your hand: " + str(hand)
-        new_message = {'role':'user', 'content':new_message_content}
-        self.messages.append(new_message)
-        response = chat(model=self.model, messages=self.messages)['message']['content']
-        return response.strip()
+        return self._message_and_response(new_message_content)
 
     def get_trumps(self, hand):
         new_message_content = "You are picking trumps. Here is your hand " + str(hand)
         new_message_content += "\nOut only a suit" 
-        new_message = {'role':'user', 'content':new_message_content}
-        self.messages.append(new_message)
-        response = chat(model=self.model, messages=self.messages)['message']['content']
-        return response.strip()
+        return self._message_and_response(new_message_content)
     
     def get_pass(self, hand : dict, trumps : str) -> str:
         new_message_content = "You are in the passing phase\n"
@@ -133,11 +135,8 @@ class Ollama_Opponent(Opponent):
         new_message_content += "Trumps is " + str(trumps) + "\n"
         new_message_content += "Your hand is " + str(hand) + "\n"
         new_message_content += "Output as a list of cards in the (SUIT, rank) format\n"
-        new_message_content += "CRITICAL: Only output the cards and use the format [(SUIT, rank), ...] format"
-        new_message = {'role':'user', 'content':new_message_content}
-        self.messages.append(new_message)
-        response = chat(model=self.model, messages=self.messages)['message']['content']
-        return response.strip()
+        new_message_content += "CRITICAL: Only output the four cards and use the format [(SUIT, rank), ...] format"
+        return self._message_and_response(new_message_content)
     
     def get_meld(self, hand, trumps) -> str:
         new_message_content = (
@@ -164,8 +163,6 @@ class Ollama_Opponent(Opponent):
         new_message = {'role':'user', 'content':new_message_content}
         self.messages.append(new_message)
         response = chat(model=self.model, messages=self.messages)['message']['content']
-        print(response)
-        print('---------------')
         return response.strip()
 
     def get_tricks(self, hand, trumps, played) -> str:
@@ -195,5 +192,5 @@ class Ollama_Opponent(Opponent):
         response = chat(model=self.model, messages=self.messages)['message']['content']
         while not self._valid_trick_format(response):
             response = chat(model=self.model, messages=self.messages)['message']['content']
-        return ast.literal_eval(response.strip())
+        return self._message_and_response(new_message_content)
 
