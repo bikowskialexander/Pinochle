@@ -41,6 +41,7 @@ class Pinochle:
             self.order.append(i)
 
     def step(self) -> dict:
+        print(self.stage)
         self.define_order()
         if self.stage == "BID":
             self.bid_taker_index = self.do_bid()
@@ -142,7 +143,6 @@ class Pinochle:
     def do_tricks(self):
         self.move_index = self.bid_taker_index
         self.define_order()
-
         self.played = []
         for i in self.order:
             trick = self.players[i].get_tricks(self.hands[i], self.trumps, self.played) 
@@ -150,6 +150,7 @@ class Pinochle:
                 trick = self.players[i].get_tricks(self.hands[i], self.trumps, self.played) 
             self.hands[i][trick[0]].remove(trick[1])
             self.played.append(trick)
+            print(str(i), "Played:", trick)
         self.tricks_left -= 1
 
     def run(self):

@@ -242,92 +242,110 @@ def check_four_of_a_kind_meld(cards : list, kind):
 # ---------------------------------------------------
 
 def check_trick_first(hand, card):
+    """
+    Validates the first card led in a trick.
+    Card must be a valid structure and must exist in the player's hand.
+    """
     try:
-        card = str(card)
-        card = ast.literal_eval(card)
-        if is_a_card(card):
-            if has_card(hand, card):
-                return True
+        # card format: (SUIT, value)
+        suit = card[0].lower()
+        rank = card[1]
+        
+        # Verify if the card actually exists in the hand structure
+        if rank in hand[suit.upper()]:
+            return True
         return False
-    except:
+    except (IndexError, AttributeError, TypeError):
         return False
-    
+
+
 def check_tricks_after_first(card, hand, played, trumps):
+    """
+    Validates a card played subsequent to the trick lead.
+    Ensures correct rules for following suit or trumping are adhered to.
+    """
     try:
-        if check_trick_first(hand, card)== False:
+        # 1. Base check: Does the player even have the card?
+        if not check_trick_first(hand, card):
             return False
         
-        card = str(card)
-        card = ast.literal_eval(card)
-
-        suit = played[0][0].lower()
+        card_suit = card[0].lower()
+        card_val = card[1]
+        trumps_lower = trumps.lower()
+        
+        # 2. Extract Lead Suit data from the first played card
+        lead_suit = played[0][0].lower()
         max_value_of_suit = CARDS.index(played[0][1])
-        for p in played[1::]:
-            if p[0] == suit:
+        
+        # Find highest matching lead-suit card on the table
+        for p in played[1:]:
+            if p[0].lower() == lead_suit:
                 index = CARDS.index(p[1])
                 if index > max_value_of_suit:
                     max_value_of_suit = index
 
-        if card[0].lower() == suit.lower(): # if the same suit
-            index = CARDS.index(card[1])
-            if index > max_value_of_suit:
+        # --- CASE A: Player is following the Lead Suit ---
+        if card_suit == lead_suit:
+            card_index = CARDS.index(card_val)
+            if card_index > max_value_of_suit:
                 return True
             else:
-                for c in hand[suit]:
+                # If they didn't beat it, ensure they don't hold a card that could have beaten it
+                for c in hand[lead_suit]:
                     if CARDS.index(c) > max_value_of_suit:
-                        return False  
-                if CARDS.index(card[0]) == max_value_of_suit:
-                    return True
-        else: # if a different suit
-            if len(hand[suit]) == 0: # if none of suit
+                        return False  # Forced to win if capable
+                return True
+
+        # --- CASE B: Player is shedding or trumping (Different Suit) ---
+        else:
+            # Illegal to play a different suit if you hold any cards of the lead suit
+            if len(hand.get(lead_suit, [])) == 0:
                 
-                if card[1].lower() == trumps:
-                    # Check for highest trump
+                # Subcase B1: Player plays a Trump Card
+                if card_suit == trumps_lower:
                     max_trump_index = None
-                    for p in played[1::]:
-                        index = CARDS.index(p[1])
-                        if p[0] == trumps:
-                            if max_trump_index == None or index > max_trump_index:
+                    for p in played:
+                        if p[0].lower() == trumps_lower:
+                            index = CARDS.index(p[1])
+                            if max_trump_index is None or index > max_trump_index:
                                 max_trump_index = index
-                    if max_trump_index == None:
+                    
+                    # If no trumps have been played yet, any played trump is legal
+                    if max_trump_index is None:
                         return True
-                    if len(hand[trumps]) == 1:
-                        return True
-                    if len(hand[trumps]) == 2:
-                        if hand[trumps][0] == hand[trumps][1]:
-                            return True
-                    if CARDS.index(card[1]) > max_trump_index: # if it is highest yet
+                        
+                    card_index = CARDS.index(card_val)
+                    if card_index > max_trump_index:
                         return True
                     else:
-                        if CARDS.index(card[1]) == max_trump_index: # if played the same
-                            # check for higher trumps
-                            for c in hand[trumps]: 
-                                if CARDS.index(c) > max_trump_index: # if a higher exists
-                                    return False
-                            return True  
-                        else:
-                            # Check for other higher
-                            for c in hand[trumps]:
-                                if CARDS.index(c) > max_trump_index:
-                                    return False
-                            return True # there are no trumps higher
-                else: # if did not play trumps
-                    if len(hand[trumps]) == 0:
+                        # Player must play a higher trump if they possess one
+                        for c in hand.get(trumps_lower, []):
+                            if CARDS.index(c) > max_trump_index:
+                                return False
+                        return True  
+                
+                # Subcase B2: Player sluffs a regular off-suit card
+                else:
+                    # Only legal if they have absolutely no trumps left in hand
+                    if len(hand.get(trumps_lower, [])) == 0:
                         return True
                     else:
                         return False
             else:
                 return False
-    except:
+    except (IndexError, ValueError, KeyError, TypeError):
         return False
 
+
 def check_trick(played, hand, card, trumps):
+    """
+    Main entry point for verifying if playing 'card' is legal.
+    """
     if len(played) == 0:
         return check_trick_first(hand, card)
     else:
+        # Fixed parameter pass sequence to match check_tricks_after_first
         return check_tricks_after_first(card, hand, played, trumps)
-
-
 
 
 

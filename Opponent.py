@@ -2,6 +2,9 @@
 
 import random
 import ast 
+import re
+from typing import Tuple
+
 from ollama import chat 
 
 import Meld
@@ -12,6 +15,13 @@ class Opponent:
 
     def __init__(self) -> None:
         self.messages = []
+        self._add_system()
+
+    def _add_system(self, system_file_name="Prompts/System.txt"):
+        f = open(system_file_name)
+        prompt_content = f.read()
+        prompt = {'role':'system', 'content':prompt_content}
+        self.messages.append(prompt)
 
     def get_bid(self, current, hand) -> str:
         if random.random() > 0.5:
@@ -19,7 +29,7 @@ class Opponent:
         else:
             return 10 + current
         
-    def get_trumps(self, hand):
+    def get_trumps(self, hand) -> str:
         return "HEARTS"
         
     def get_pass(self, hand : dict, trumps : str) -> str:
@@ -50,25 +60,99 @@ class Ollama_Opponent(Opponent):
 
     def __init__(self) -> None:
         super().__init__()
-        self.model = "llama3.1:8b"
+        self.model = "granite4:1b"
+
+    def _parse_card(self, card_str: str) -> Tuple[str, str]:
+        """
+        Extract the suit and rank from a string in the form
+        "('SUIT','rank')" (with optional spaces).
+
+        Parameters
+        ----------
+        card_str : str
+            The string to parse.  It may contain leading/trailing whitespace.
+
+        Returns
+        -------
+        tuple[str, str]
+            A tuple ``(suit, rank)``.
+
+        Raises
+        ------
+        ValueError
+            If *card_str* does not match the expected format.
+        """
+        # Strip outer whitespace first – makes the pattern a bit cleaner.
+        card_str = card_str.strip()
+
+        # Regex:
+        #   \(            – literal '('
+        #   \s*           – optional whitespace
+        #   '([^']+)'     – a single‑quoted non‑empty string (captured)
+        #   \s*,\s*       – a comma surrounded by optional whitespace
+        #   '([^']+)'     – second single‑quoted string (captured)
+        #   \s*\)         – optional whitespace and a closing ')'
+        pattern = r"\(\s*'([^']+)'\s*,\s*'([^']+)'\s*\)"
+
+        match = re.fullmatch(pattern, card_str)
+        if not match:                     # pragma: no cover
+            raise ValueError(
+                f"'{card_str}' is not a valid card representation "
+                f"– expected format \"('SUIT','rank')\""
+            )
+        suit, rank = match.group(1), match.group(2)
+        return suit, rank
 
     def _valid_trick_format(self, trick):
         try:
-            ast.literal_eval(trick)
+            self._parse_card(trick)
             return True
-        except:
+        except ValueError:
             return False
+        
+    def get_bid(self, current, hand):
+        new_message_content = "You are in the bid phase. Either output PASS or a bid."
+        new_message_content += "\nThe current bid is " + str(current)
+        new_message_content += "Here is your hand: " + str(hand)
+        new_message = {'role':'user', 'content':new_message_content}
+        self.messages.append(new_message)
+        response = chat(model=self.model, messages=self.messages)['message']['content']
+        return response.strip()
+
+    def get_trumps(self, hand):
+        new_message_content = "You are picking trumps. Here is your hand " + str(hand)
+        new_message_content += "\nOut only a suit" 
+        new_message = {'role':'user', 'content':new_message_content}
+        self.messages.append(new_message)
+        response = chat(model=self.model, messages=self.messages)['message']['content']
+        return response.strip()
 
     def get_tricks(self, hand, trumps, played) -> str:
-        new_message_content = "You are playing Pinochle. Output only a card in (SUIT, value) form."
-        new_message_content += "\n trumps is " + str(trumps) + " and you have: \n"
-        new_message_content += str(hand)
-        new_message_content += "\n the cards " + str(played) + " have been played."
+        # Enforce strict uppercase system formatting instructions
+        new_message_content = (
+            "You are playing Pinochle and are in the trick-taking phase.\n"
+            "Your output must be strictly limited to a single valid Python tuple in the format: ('SUIT', 'rank').\n"
+            "Example valid outputs: ('HEARTS', 'A') or ('SPADES', '10').\n"
+            "Do not include any introductory commentary, thinking text, or surrounding markdown code blocks.\n\n"
+        )
+        
+        # Inject game state context
+        new_message_content += f"The trump suit for this hand is: {str(trumps).upper()}\n"
+        new_message_content += f"Your current hand is: {str(hand)}\n"
+        new_message_content += f"The cards played so far this trick (in order) are: {str(played)}\n\n"
+        
+        # Strategy rules reminder to optimize AI decision boundaries
+        new_message_content += (
+            "Rules Reminders:\n"
+            "- You must follow the lead suit if you are able to.\n"
+            "- If you can follow the lead suit, you must beat the highest card of that suit on the table if possible.\n"
+            "- If you are void of the lead suit, you must play a trump card and beat any trumps already played if possible.\n\n"
+            "CRITICAL: Output EXACTLY ONE card tuple and nothing else."
+        ) 
         new_message = {'role':'user', 'content':new_message_content}
         self.messages.append(new_message)
         response = chat(model=self.model, messages=self.messages)['message']['content']
         while not self._valid_trick_format(response):
-            print(response)
             response = chat(model=self.model, messages=self.messages)['message']['content']
-        return ast.literal_eval(response)
+        return ast.literal_eval(response.strip())
 
