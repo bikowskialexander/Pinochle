@@ -120,7 +120,8 @@ class Pinochle:
         for m in meld:
             p = checks.parse_game_string(m)
             if len(p) > 0:
-                points += MELD_POINTS[p[0]]
+                points += MELD_POINTS[p[0].lower()]
+        print("MELD ACCEPTED")
         return points
 
     def do_meld(self):

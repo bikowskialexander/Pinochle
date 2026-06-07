@@ -126,6 +126,47 @@ class Ollama_Opponent(Opponent):
         self.messages.append(new_message)
         response = chat(model=self.model, messages=self.messages)['message']['content']
         return response.strip()
+    
+    def get_pass(self, hand : dict, trumps : str) -> str:
+        new_message_content = "You are in the passing phase\n"
+        new_message_content += "You will give four cards to your team mate\n"
+        new_message_content += "Trumps is " + str(trumps) + "\n"
+        new_message_content += "Your hand is " + str(hand) + "\n"
+        new_message_content += "Output as a list of cards in the (SUIT, rank) format\n"
+        new_message_content += "CRITICAL: Only output the cards and use the format [(SUIT, rank), ...] format"
+        new_message = {'role':'user', 'content':new_message_content}
+        self.messages.append(new_message)
+        response = chat(model=self.model, messages=self.messages)['message']['content']
+        return response.strip()
+    
+    def get_meld(self, hand, trumps) -> str:
+        new_message_content = (
+            "You are playing Pinochle and are in the Meld phase.\n"
+            "Your task is to declare your melds using the cards from your hand.\n\n"
+            "CRITICAL OUTPUT FORMAT RULES:\n"
+            "- You must output your melds as a valid Python list of lists.\n"
+            "- Each inner list must represent ONE meld, starting with the meld name string followed by the card tuples.\n"
+            "- The card tuples must strictly use the format: ('SUIT', 'rank') with uppercase suits.\n"
+            "- EACH MELD LIST MUST BE ON ITS OWN LINE.\n"
+            "- Do not wrap the output in markdown code blocks like ```python ... ```. Output raw text only.\n"
+            "- Do not include any analysis, introduction, or commentary.\n\n"
+            "EXACT LINE-SEPARATED STRUCTURAL EXAMPLE:\n"
+            "  [\"Marriage\", ('DIAMONDS', 'K'), ('DIAMONDS', 'Q')]\n"
+            "  [\"Pinochle\", ('SPADES', 'Q'), ('DIAMONDS', 'J')]\n"
+        )
+        
+        # Inject current game state
+        new_message_content += f"Your current hand is: {str(hand)}\n"
+        new_message_content += f"The trump suit is: {str(trumps).upper()}\n"
+        new_message_content += f"Valid meld names you can use: {str(MELD_OPTIONS)}\n\n"
+        new_message_content += "Construct your highest scoring valid melds and output them now following the line-separated example structure exactly:"
+        
+        new_message = {'role':'user', 'content':new_message_content}
+        self.messages.append(new_message)
+        response = chat(model=self.model, messages=self.messages)['message']['content']
+        print(response)
+        print('---------------')
+        return response.strip()
 
     def get_tricks(self, hand, trumps, played) -> str:
         # Enforce strict uppercase system formatting instructions

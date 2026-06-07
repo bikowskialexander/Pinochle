@@ -116,53 +116,56 @@ def is_meld(name):
         return False
     
 def check_meld_valid(hand, response : str, trumps):
-    melds = response.split('\n')
-    if response == "":
-            return True
-    for meld in melds:
-        if meld == "" or meld == " " or meld == "\n":
-            return True
-        meld = parse_game_string(meld)
-        meld_type = meld[0].lower() 
-        cards = meld[1::]
-        for card in cards:
-            if has_card(hand, card) == False:
-                return False
-        if is_meld(meld_type) == False:
-            return False 
-        if meld_type == 'aces':
-            if check_four_of_a_kind_meld(cards, 'aces') == False:
-                return False
-        elif meld_type == 'kings':
-            if check_four_of_a_kind_meld(cards, 'kings') == False:
-                return False
-        elif meld_type == 'queens':
-            if check_four_of_a_kind_meld(cards, 'queens') == False:
-                return False
-        elif meld_type == 'jacks':
-            if check_four_of_a_kind_meld(cards, 'jacks') == False:
-                return False
-        elif meld_type == 'marriage':
-            if check_for_marriage(cards) == False:
+    try:
+        melds = response.split('\n')
+        if response == "":
+                return True
+        for meld in melds:
+            if meld == "" or meld == " " or meld == "\n":
+                return True
+            meld = parse_game_string(meld)
+            meld_type = meld[0].lower() 
+            cards = meld[1::]
+            for card in cards:
+                if has_card(hand, card) == False:
+                    return False
+            if is_meld(meld_type) == False:
                 return False 
-        elif meld_type == 'royal marriage':
-            if check_royal_marriage(cards, trumps) == False:
-                return False 
-        elif meld_type == "nine of trumps":
-            if check_nines(cards, trumps) == False:
-                return False 
-        elif meld_type == "pinochle":
-            if check_pinochle(cards) == False:
+            if meld_type == 'aces':
+                if check_four_of_a_kind_meld(cards, 'aces') == False:
+                    return False
+            elif meld_type == 'kings':
+                if check_four_of_a_kind_meld(cards, 'kings') == False:
+                    return False
+            elif meld_type == 'queens':
+                if check_four_of_a_kind_meld(cards, 'queens') == False:
+                    return False
+            elif meld_type == 'jacks':
+                if check_four_of_a_kind_meld(cards, 'jacks') == False:
+                    return False
+            elif meld_type == 'marriage':
+                if check_for_marriage(cards) == False:
+                    return False 
+            elif meld_type == 'royal marriage':
+                if check_royal_marriage(cards, trumps) == False:
+                    return False 
+            elif meld_type == "nine of trumps":
+                if check_nines(cards, trumps) == False:
+                    return False 
+            elif meld_type == "pinochle":
+                if check_pinochle(cards) == False:
+                    return False
+            elif meld_type == "double pinochle":
+                if check_double_pinochle(cards) == False:
+                    return False 
+            elif meld_type == "run":
+                if check_run(cards, trumps) == False:
+                    return False
+            else:
                 return False
-        elif meld_type == "double pinochle":
-            if check_double_pinochle(cards) == False:
-                return False 
-        elif meld_type == "run":
-            if check_run(cards, trumps) == False:
-                return False
-        else:
-            return False
-    return True
+        return True
+    except:
+        return False
     
 def check_run(cards, suit):
     needed = ['A', '10', 'K', 'Q', 'J']
