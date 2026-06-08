@@ -60,7 +60,7 @@ class Ollama_Opponent(Opponent):
 
     def __init__(self) -> None:
         super().__init__()
-        self.model = "nemotron-mini:4b"
+        self.model = "granite4.1:3b"
 
     def _parse_card(self, card_str: str) -> Tuple[str, str]:
         """
@@ -129,13 +129,24 @@ class Ollama_Opponent(Opponent):
         new_message_content += "\nOut only a suit" 
         return self._message_and_response(new_message_content)
     
-    def get_pass(self, hand : dict, trumps : str) -> str:
-        new_message_content = "You are in the passing phase\n"
-        new_message_content += "You will give four cards to your team mate\n"
-        new_message_content += "Trumps is " + str(trumps) + "\n"
-        new_message_content += "Your hand is " + str(hand) + "\n"
-        new_message_content += "Output as a list of cards in the (SUIT, rank) format\n"
-        new_message_content += "CRITICAL: Only output the four cards and use the format [(SUIT, rank), ...] format"
+    def get_pass(self, hand: dict, trumps: str) -> str:
+        new_message_content = (
+            "You are playing Pinochle and are in the passing phase.\n"
+            "You must select exactly FOUR cards from your hand to pass to your teammate.\n\n"
+            "CRITICAL OUTPUT FORMAT RULES:\n"
+            "- You must output the cards as a single, flat Python list containing exactly four card tuples.\n"
+            "- Each card tuple must strictly follow the format: ('SUIT', 'rank') with uppercase suits.\n"
+            "- Do not wrap the output in markdown code blocks like ```python ... ```. Output raw text only.\n"
+            "- Do not include any commentary, reasoning, intro, or outro text.\n\n"
+            "EXACT STRUCTURAL EXAMPLE:\n"
+            "[('SPADES', 'A'), ('SPADES', '10'), ('HEARTS', 'K'), ('DIAMONDS', 'Q')]\n\n"
+        )
+        
+        # Inject game state details
+        new_message_content += f"The trump suit is: {str(trumps).upper()}\n"
+        new_message_content += f"Your current hand is: {str(hand)}\n\n"
+        new_message_content += "Select your FOUR best passing cards and output them now matching the structural example layout exactly:"
+        
         return self._message_and_response(new_message_content)
     
     def get_meld(self, hand, trumps) -> str:

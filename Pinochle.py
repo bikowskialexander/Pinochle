@@ -47,6 +47,7 @@ class Pinochle:
         self.define_order()
         if self.stage == "BID":
             self.bid_taker_index = self.do_bid()
+            self.ui.set_score(['North', 'South', 'East', 'West'][self.bid_taker_index], self.current_bid)
             self.stage = "TRUMPS"
         elif self.stage == "TRUMPS":
             self.trumps = self.do_trumps()
