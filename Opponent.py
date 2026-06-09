@@ -7,6 +7,8 @@ from typing import Tuple
 
 from ollama import chat 
 
+import checks
+
 import Meld
 
 from Constants import *
@@ -23,16 +25,16 @@ class Opponent:
         prompt = {'role':'system', 'content':prompt_content}
         self.messages.append(prompt)
 
-    def get_bid(self, current, hand) -> str:
+    def get_bid(self, current, hand, additional_message="") -> str:
         if random.random() > 0.5:
             return "PASS" 
         else:
-            return 10 + current
+            return str(10 + int(current))
         
-    def get_trumps(self, hand) -> str:
+    def get_trumps(self, hand,  additional_message="") -> str:
         return "HEARTS"
         
-    def get_pass(self, hand : dict, trumps : str) -> str:
+    def get_pass(self, hand : dict, trumps : str,  additional_message="") -> str:
         lst = []
         count = 0
         suit_counter = 0
@@ -46,62 +48,26 @@ class Opponent:
                 suit_counter = 0
         return str(lst)
 
-    def get_meld(self, hand, trumps) -> str:
+    def get_meld(self, hand, trumps,  additional_message="") -> str:
         meld = Meld.get_melds(hand, trumps)
         return meld 
 
-    def get_tricks(self, hand, trumps, played) -> str:
-        suit = SUITS[random.randint(0,3)]
-        value = CARDS[random.randint(0, len(CARDS)-1)]
-        return (suit, value)
+    def get_tricks(self, hand, trumps, played,  additional_message="") -> str:
+        for suit in SUITS:
+            for rank in hand[suit]:
+                card = (suit.upper(), rank)
+                if checks.check_trick(played, hand, card, trumps):
+                    return str(card)
 
 
 class Ollama_Opponent(Opponent):
 
     def __init__(self) -> None:
         super().__init__()
-        self.model = "granite4.1:3b"
+        self.model = DEFAULT_MODEL
 
     def _parse_card(self, card_str: str) -> Tuple[str, str]:
-        """
-        Extract the suit and rank from a string in the form
-        "('SUIT','rank')" (with optional spaces).
-
-        Parameters
-        ----------
-        card_str : str
-            The string to parse.  It may contain leading/trailing whitespace.
-
-        Returns
-        -------
-        tuple[str, str]
-            A tuple ``(suit, rank)``.
-
-        Raises
-        ------
-        ValueError
-            If *card_str* does not match the expected format.
-        """
-        # Strip outer whitespace first – makes the pattern a bit cleaner.
-        card_str = card_str.strip()
-
-        # Regex:
-        #   \(            – literal '('
-        #   \s*           – optional whitespace
-        #   '([^']+)'     – a single‑quoted non‑empty string (captured)
-        #   \s*,\s*       – a comma surrounded by optional whitespace
-        #   '([^']+)'     – second single‑quoted string (captured)
-        #   \s*\)         – optional whitespace and a closing ')'
-        pattern = r"\(\s*'([^']+)'\s*,\s*'([^']+)'\s*\)"
-
-        match = re.fullmatch(pattern, card_str)
-        if not match:                     # pragma: no cover
-            raise ValueError(
-                f"'{card_str}' is not a valid card representation "
-                f"– expected format \"('SUIT','rank')\""
-            )
-        suit, rank = match.group(1), match.group(2)
-        return suit, rank
+        return checks.parse_card(card_str)
 
     def _valid_trick_format(self, trick):
         try:
@@ -118,18 +84,21 @@ class Ollama_Opponent(Opponent):
         self.messages.append(structured_response)
         return response.strip()
         
-    def get_bid(self, current, hand):
-        new_message_content = "You are in the bid phase. Either output PASS or a bid."
+    def get_bid(self, current, hand, additional_message=""):
+        new_message_content = "You are in the bid phase. Either output PASS or a bid higher than the current."
         new_message_content += "\nThe current bid is " + str(current)
         new_message_content += "Here is your hand: " + str(hand)
+        new_message_content += "\nCRITICAL: Output either PASS or a number"
+        new_message_content += "\n - example A: PASS"
+        new_message_content += "\n - example B: 260"
         return self._message_and_response(new_message_content)
 
-    def get_trumps(self, hand):
+    def get_trumps(self, hand, additional_message=""):
         new_message_content = "You are picking trumps. Here is your hand " + str(hand)
         new_message_content += "\nOut only a suit" 
         return self._message_and_response(new_message_content)
     
-    def get_pass(self, hand: dict, trumps: str) -> str:
+    def get_pass(self, hand: dict, trumps: str, additional_message="") -> str:
         new_message_content = (
             "You are playing Pinochle and are in the passing phase.\n"
             "You must select exactly FOUR cards from your hand to pass to your teammate.\n\n"
@@ -149,7 +118,7 @@ class Ollama_Opponent(Opponent):
         
         return self._message_and_response(new_message_content)
     
-    def get_meld(self, hand, trumps) -> str:
+    def get_meld(self, hand, trumps, additional_message="") -> str:
         new_message_content = (
             "You are playing Pinochle and are in the Meld phase.\n"
             "Your task is to declare your melds using the cards from your hand.\n\n"
@@ -176,7 +145,7 @@ class Ollama_Opponent(Opponent):
         response = chat(model=self.model, messages=self.messages)['message']['content']
         return response.strip()
 
-    def get_tricks(self, hand, trumps, played) -> str:
+    def get_tricks(self, hand, trumps, played, additional_message="") -> str:
         # Enforce strict uppercase system formatting instructions
         new_message_content = (
             "You are playing Pinochle and are in the trick-taking phase.\n"

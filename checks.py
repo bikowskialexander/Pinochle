@@ -2,6 +2,7 @@
 
 import ast 
 import re
+from typing import Tuple
 
 from Constants import *
 
@@ -83,11 +84,46 @@ def is_a_suit(response : str):
 #                   For Passing
 # ---------------------------------------------------
 
+def parse_passed_cards(response_str: str) -> list:
+    """
+    Takes a raw string containing a list of card tuples from the LLM,
+    cleans it up, parses it, and returns a valid Python list of tuples.
+    
+    Example Input: "[('SPADES', 'A'), ('SPADES', '10'), ('HEARTS', 'K'), ('DIAMONDS', 'Q')]"
+    Example Output: [('SPADES', 'A'), ('SPADES', '10'), ('HEARTS', 'K'), ('DIAMONDS', 'Q')]
+    """
+    try:
+        # 1. Clean up potential markdown code fences (```python ... ```) if the LLM leaked them
+        cleaned_str = response_str.strip()
+        cleaned_str = re.sub(r'^```[a-zA-Z]*\s*', '', cleaned_str)
+        cleaned_str = re.sub(r'\s*```$', '', cleaned_str)
+        cleaned_str = cleaned_str.strip()
+        
+        # 2. Extract just the list part [...] if there happens to be trailing text
+        list_match = re.search(r'\[.*\]', cleaned_str, re.DOTALL)
+        if list_match:
+            cleaned_str = list_match.group(0)
+            
+        # 3. Safely parse the string representation into a real Python object
+        parsed_data = ast.literal_eval(cleaned_str)
+        
+        # 4. Final verification that we received a list of tuples
+        if isinstance(parsed_data, list):
+            # Ensure every item inside is a tuple (or force it to be one)
+            return [tuple(card) for card in parsed_data]
+            
+        print(f"[ERROR] Parsed data was a {type(parsed_data)}, expected a list.")
+        return []
+        
+    except (ValueError, SyntaxError) as e:
+        print(f"[ERROR] Failed to parse card string structure: {e}")
+        return []
+
 
 # This needs to be adjusted for multiple of the same card
 def check_passed(hand, response : str):
     try:
-        cards = ast.literal_eval(response)
+        cards = parse_passed_cards(response)
 
         if len(cards) != 4:
             return False 
@@ -339,11 +375,53 @@ def check_tricks_after_first(card, hand, played, trumps):
     except (IndexError, ValueError, KeyError, TypeError):
         return False
 
+def parse_card(card_str: str) -> Tuple[str, str]:
+    """
+    Extract the suit and rank from a string in the form
+    "('SUIT','rank')" (with optional spaces).
 
-def check_trick(played, hand, card, trumps):
+    Parameters
+    ----------
+    card_str : str
+        The string to parse.  It may contain leading/trailing whitespace.
+
+    Returns
+    -------
+    tuple[str, str]
+        A tuple ``(suit, rank)``.
+
+    Raises
+    ------
+    ValueError
+        If *card_str* does not match the expected format.
+    """
+    # Strip outer whitespace first – makes the pattern a bit cleaner.
+    card_str = card_str.strip()
+
+    # Regex:
+    #   \(            – literal '('
+    #   \s*           – optional whitespace
+    #   '([^']+)'     – a single‑quoted non‑empty string (captured)
+    #   \s*,\s*       – a comma surrounded by optional whitespace
+    #   '([^']+)'     – second single‑quoted string (captured)
+    #   \s*\)         – optional whitespace and a closing ')'
+    pattern = r"\(\s*'([^']+)'\s*,\s*'([^']+)'\s*\)"
+
+    match = re.fullmatch(pattern, card_str)
+    if not match:                     # pragma: no cover
+        raise ValueError(
+            f"'{card_str}' is not a valid card representation "
+            f"– expected format \"('SUIT','rank')\""
+        )
+    suit, rank = match.group(1), match.group(2)
+    return suit, rank
+
+def check_trick(played, hand, card : str, trumps):
     """
     Main entry point for verifying if playing 'card' is legal.
     """
+    card = str(card)
+    card = parse_card(card)
     if len(played) == 0:
         return check_trick_first(hand, card)
     else:

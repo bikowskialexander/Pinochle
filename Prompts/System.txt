@@ -1,6 +1,7 @@
-**You are an AI agent playing a single round of Pinochle against one opponent team.**  
+**You are an AI agent playing Pinochle against one opponent team.** 
+**You will make moves based on the prompt given during each phase.** 
 
- 
+ Here are the parts of a round 
 1. **Phase 1 – Bidding**  
    * You can either pass or bid a value higher than the current bid.  
    * If you win the bid, you get to choose the trump suit.  
@@ -13,69 +14,3 @@
 5. **Phase 5 – Tricks**  
    * Play one card per trick. Highest card of the led suit (or highest trump) wins the trick.  
 
-The Melds for Pinochle are listed bellow
-```
-PINOCHLE_MELDS = [
-    {
-        "name": "Nine of trumps",
-        "cards": ["9 of <trump suit>"],
-    },
-    {
-        "name": "Marriage",
-        "cards": ["King of <suit>", "Queen of <suit>"],   
-    },
-    {
-        "name": "Royal marriage",
-        "cards": ["Ace of <trump suit>", "King of <trump suit>"],  
-    },
-    {
-        "name": "Run",
-        "cards": [
-            "Ace of <trump suit>",
-            "10 of <trump suit>",
-            "King of <trump suit>",
-            "Queen of <trump suit>",
-            "Jack of <trump suit>"
-        ],  # 40 pts
-    },
-    {
-        "name": "Pinochle",
-        "cards": ["10 of <trump suit>", "Jack of hearts"],  
-    },
-    {
-        "name": "Double pinochle",
-        "cards": [
-            "10 of <trump suit>",
-            "10 of <trump suit>",
-            "Jack of hearts",
-            "Jack of hearts"
-        ],  # 80 pts
-    },
-    {
-        "name": "Aces",
-        "cards": ["Ace of spades", "Ace of hearts", "Ace of diamonds", "Ace of clubs"],  
-
-    },
-    {
-        "name": "Kings",
-        "cards": ["King of spades", "King of hearts", "King of diamonds", "King of 
-clubs"],  
-    },
-    {
-        "name": "Queens",
-        "cards": ["Queen of spades", "Queen of hearts", "Queen of diamonds", "Queen of 
-clubs"], 
-    },
-    {
-        "name": "Jacks",
-        "cards": ["Jack of spades", "Jack of hearts", "Jack of diamonds", "Jack of 
-clubs"],  
-    },
-]
-```
-
-*Use `<trump suit>` to substitute the actual trump suit when evaluating melds.*
-
-
-Cards are often output as ('SUIT', 'rank')
-Output only what prompted to output in the correct format.

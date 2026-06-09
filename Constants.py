@@ -28,4 +28,10 @@ MELD_POINTS = {"nine of trumps": NINES_POINTS,
                "double pinochle": DOUBLE_PINOCHLE_POINTS} 
 
 
+GRANITE4_1_8B = "granite4.1:8b"
+GRANITE4_1_3B = "granite4.1:3b"
+GRANITE4_1B = "granite4:1b"
+
+
+DEFAULT_MODEL = GRANITE4_1B
 

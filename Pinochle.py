@@ -14,7 +14,7 @@ from Opponent import Opponent, Ollama_Opponent
 class Pinochle:
 
     def __init__(self) -> None:
-        self.players = [Ollama_Opponent(), Ollama_Opponent(), Ollama_Opponent(), Ollama_Opponent()]
+        self.players = [Opponent(), Opponent(), Opponent(), Opponent()]
         self.move_index = 0
         self.stage = "BID"
         self.current_bid = 250
@@ -103,7 +103,7 @@ class Pinochle:
     def get_valid_pass(self, index):
         request = self.players[index].get_pass(self.hands[index], self.trumps).upper()
         self._add_to_logs(request)
-        while not checks.check_passed(self.hands[index], p):
+        while not checks.check_passed(self.hands[index], request):
             request = self.players[index].get_pass(self.hands[index], self.trumps).upper()
             self._add_to_logs(request)
         return request 
@@ -166,6 +166,7 @@ class Pinochle:
             while not checks.check_trick(self.played, self.hands[i], trick, self.trumps):
                 trick = self.players[i].get_tricks(self.hands[i], self.trumps, self.played) 
                 self._add_to_logs(trick)
+            trick = checks.parse_card(trick)
             self.hands[i][trick[0]].remove(trick[1])
             self.played.append(trick)
             print(str(i), "Played:", trick)
