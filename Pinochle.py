@@ -14,7 +14,7 @@ from Opponent import Opponent, Ollama_Opponent
 class Pinochle:
 
     def __init__(self) -> None:
-        self.players = [Opponent(), Opponent(), Opponent(), Opponent()]
+        self.players = [Ollama_Opponent(), Ollama_Opponent(), Ollama_Opponent(), Ollama_Opponent()]
         self.move_index = 0
         self.stage = "BID"
         self.current_bid = 250
@@ -104,7 +104,7 @@ class Pinochle:
         request = self.players[index].get_pass(self.hands[index], self.trumps).upper()
         self._add_to_logs(request)
         while not checks.check_passed(self.hands[index], request):
-            request = self.players[index].get_pass(self.hands[index], self.trumps).upper()
+            request = self.players[index].get_pass(self.hands[index], self.trumps, PASS_FAILURE_MESSAGE).upper()
             self._add_to_logs(request)
         return request 
 

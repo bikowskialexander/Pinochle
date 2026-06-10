@@ -31,7 +31,14 @@ MELD_POINTS = {"nine of trumps": NINES_POINTS,
 GRANITE4_1_8B = "granite4.1:8b"
 GRANITE4_1_3B = "granite4.1:3b"
 GRANITE4_1B = "granite4:1b"
+GRANITE4_350M = "granite4:350M"
+QWEN_3_5_0_8B = "qwen3.5:0.8b"
+QWEN_3_5_9B = "qwen3.5:9b"
+QWEN_3_5_4B = "qwen3.5:4b"
+NEMOTRON_MINI_4B = "nemotron-mini:4b"
 
 
-DEFAULT_MODEL = GRANITE4_1B
+DEFAULT_MODEL = QWEN_3_5_4B
+
+PASS_FAILURE_MESSAGE = "The last output given was not accepted. Please Try Again."
 
