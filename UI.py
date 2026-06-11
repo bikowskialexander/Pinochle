@@ -1,6 +1,8 @@
 import pygame
 import sys
 
+from Constants import *
+
 # --- Base Design Constants ---
 BASE_WIDTH = 1300
 BASE_HEIGHT = 900
@@ -19,12 +21,12 @@ MELD_COLOR = (255, 215, 0)
 SELECTION_COLOR = (0, 255, 0)
 HOVER_COLOR = (144, 238, 144)
 
-# Sorting / Display Order
+# Sorting / Display Order - Internally lowercase for UI processing mapping
 RANK_ORDER = {'A': 5, '10': 4, 'K': 3, 'Q': 2, 'J': 1, '9': 0}
-DISPLAY_SUIT_ORDER = ['Spades', 'Hearts', 'Clubs', 'Diamonds']
+DISPLAY_SUIT_ORDER = ['spades', 'hearts', 'clubs', 'diamonds']
 
-SUIT_SYMBOLS = {'Spades': '♠', 'Hearts': '♥', 'Clubs': '♣', 'Diamonds': '♦'}
-SUIT_COLORS = {'Spades': TEXT_BLACK, 'Hearts': TEXT_RED, 'Clubs': TEXT_BLACK, 'Diamonds': TEXT_RED}
+SUIT_SYMBOLS = {'spades': '♠', 'hearts': '♥', 'clubs': '♣', 'diamonds': '♦'}
+SUIT_COLORS = {'spades': TEXT_BLACK, 'hearts': TEXT_RED, 'clubs': TEXT_BLACK, 'diamonds': TEXT_RED}
 
 class PinochleUI:
     def __init__(self):
@@ -59,7 +61,7 @@ class PinochleUI:
         self.font_main = pygame.font.SysFont('arial', scaled_font_main, bold=True)
         self.font_suit = pygame.font.SysFont('arial', scaled_font_suit) 
 
-        # Data Stores
+        # Data Stores (Suits completely lowercase internally)
         self.hands = {'North': [], 'South': [], 'East': [], 'West': []}
         self.center_cards = {}
         self.meld_highlights = {'North': set(), 'South': set(), 'East': set(), 'West': set()}
@@ -75,16 +77,11 @@ class PinochleUI:
         self._pending_user_click = None
 
     def sleep(self, seconds):
-        """
-        Pauses execution for 'seconds' while keeping the window responsive.
-        """
+        """Pauses execution for 'seconds' while keeping the window responsive."""
         start_ticks = pygame.time.get_ticks()
         target_ticks = seconds * 1000
-        
         print(f"Sleeping for {seconds} seconds...")
-        
         while pygame.time.get_ticks() - start_ticks < target_ticks:
-            # Continues to render the screen and handle Quit events
             self.render()
 
     def get_latest_from_user(self):
@@ -105,16 +102,16 @@ class PinochleUI:
             print(f"UPDATE: {player} score set to {points}")
 
     def update_hands(self, player_hands):
-        for player, suits_dict in player_hands.items():
-            if player not in self.hands: continue
-            flattened_hand = []
-            for suit_name in DISPLAY_SUIT_ORDER:
-                ranks = suits_dict.get(suit_name) or suits_dict.get(suit_name.lower())
-                if ranks:
-                    sorted_ranks = sorted(ranks, key=lambda r: RANK_ORDER.get(r, -1), reverse=True)
-                    for rank in sorted_ranks:
-                        flattened_hand.append((rank, suit_name))
-            self.hands[player] = flattened_hand
+        for p in ['North', 'South', 'East', 'West']:
+            self.hands[p] = []
+        for player in range(4):
+            player_name = ['North', 'South', 'East', 'West'][player]
+            for suit in SUITS:
+                # Accepts uppercase SUITS global, converts to map lowercase input dict keys
+                suit_lower = suit.upper()
+                if suit_lower in player_hands[player]:
+                    for card in player_hands[player][suit_lower]:
+                        self.hands[player_name].append((suit_lower, card))
 
     def play_card(self, player, card_tuple):
         val1, val2 = card_tuple
@@ -133,8 +130,8 @@ class PinochleUI:
             print(f"ERROR: Invalid Card Format {card_tuple}.")
             return
 
-        target_suit = target_suit.capitalize()
-        target_card = (target_rank, target_suit)
+        target_suit = target_suit.lower()
+        target_card = (target_suit, target_rank) 
         
         if player in self.hands:
             if target_card in self.hands[player]:
@@ -155,7 +152,7 @@ class PinochleUI:
         self.scores[player] = points
         new_highlights = set()
         for (suit, rank) in card_list:
-            new_highlights.add((rank, suit.capitalize()))
+            new_highlights.add((suit.lower(), rank))
         self.meld_highlights[player] = new_highlights
 
     def clear_meld(self, player):
@@ -165,13 +162,13 @@ class PinochleUI:
 
     def highlight_card(self, player, card_tuple):
         input_suit, input_rank = card_tuple
-        target = (input_rank, input_suit.capitalize())
+        target = (input_suit.lower(), input_rank)
         if player in self.green_highlights:
             self.green_highlights[player].add(target)
 
     def unhighlight_card(self, player, card_tuple):
         input_suit, input_rank = card_tuple
-        target = (input_rank, input_suit.capitalize())
+        target = (input_suit.lower(), input_rank)
         if player in self.green_highlights and target in self.green_highlights[player]:
             self.green_highlights[player].remove(target)
 
@@ -181,6 +178,7 @@ class PinochleUI:
     # --- DRAWING LOGIC ---
 
     def _draw_card(self, x, y, rank, suit, border_color=(0, 0, 0), border_thickness=2):
+        suit = suit.lower()
         card_rect = pygame.Rect(x, y, self.card_w, self.card_h)
         pygame.draw.rect(self.screen, CARD_COLOR, card_rect, border_radius=5)
         pygame.draw.rect(self.screen, border_color, card_rect, border_thickness, border_radius=5)
@@ -213,9 +211,9 @@ class PinochleUI:
 
         is_user = self.player_names[player_key] == 'user'
 
-        for i, (rank, suit) in enumerate(cards):
+        for i, (suit, rank) in enumerate(cards):
             x = start_x + i * (self.card_w + self.margin)
-            color, thick = self._get_border_style(player_key, (rank, suit))
+            color, thick = self._get_border_style(player_key, (suit, rank))
             
             mouse_pos = pygame.mouse.get_pos()
             rect = pygame.Rect(x, start_y, self.card_w, self.card_h)
@@ -227,7 +225,8 @@ class PinochleUI:
             card_rect = self._draw_card(x, start_y, rank, suit, color, thick)
             
             if is_user:
-                self.clickable_rects.append((card_rect, (rank, suit)))
+                # Returns the suit parameter back upstream transformed as uppercase to match your game logic expectation
+                self.clickable_rects.append((card_rect, (suit.upper(), rank)))
 
     def _draw_hand_grid(self, player_key, is_left_side):
         cards = self.hands[player_key]
@@ -243,12 +242,12 @@ class PinochleUI:
         else:
             start_x = self.screen_w - (self.card_w * 2 + self.margin) - self.pad_large
 
-        for i, (rank, suit) in enumerate(cards):
+        for i, (suit, rank) in enumerate(cards):
             row = i // cols
             col = i % cols
             x = start_x + col * (self.card_w + self.margin)
             y = start_y + row * (self.card_h + self.margin)
-            color, thick = self._get_border_style(player_key, (rank, suit))
+            color, thick = self._get_border_style(player_key, (suit, rank))
             self._draw_card(x, y, rank, suit, color, thick)
 
     def _draw_center_trick(self):
@@ -259,7 +258,7 @@ class PinochleUI:
             'West':  (cx - self.card_w - self.margin * 2, cy - self.card_h // 2),
             'East':  (cx + self.margin * 2,              cy - self.card_h // 2)
         }
-        for player, (rank, suit) in self.center_cards.items():
+        for player, (suit, rank) in self.center_cards.items():
             if player in offsets:
                 x, y = offsets[player]
                 self._draw_card(x, y, rank, suit)
@@ -310,7 +309,7 @@ class PinochleUI:
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1: 
                     mouse_pos = event.pos
-                    for rect, (rank, suit) in self.clickable_rects:
+                    for rect, (suit, rank) in self.clickable_rects:
                         if rect.collidepoint(mouse_pos):
                             self._pending_user_click = (suit, rank)
                             break
@@ -329,24 +328,25 @@ if __name__ == "__main__":
         'West':  'AI_West'
     })
 
-    full_hands = {
-        'North': { 'spades': ['A', '10', 'K'], 'hearts': ['A', '10', 'K'], 'clubs': ['A', '10', 'K'], 'diamonds': ['A', '10', 'K'] },
-        'South': { 'spades': ['A', 'A', '10', '10', 'K', 'K', 'Q', 'Q', 'J', 'J'], 'diamonds': ['A', '10'], 'hearts': [], 'clubs': [] },
-        'East': { 'clubs': ['Q', 'Q', 'J', 'J', '9', '9'], 'hearts': ['Q', 'Q', 'J', 'J', '9', '9'], 'spades': [], 'diamonds': [] },
-        'West': { 'diamonds': ['Q', 'Q', 'J', 'J', '9', '9'], 'spades': ['9', '9'], 'clubs': ['A', '10'], 'hearts': ['A', '10'] }
-    }
+    # Kept input deck initialization keys lowercase to reflect your game state storage format
+    full_hands = [
+        { 'spades': ['A', '10', 'K'], 'hearts': ['A', '10', 'K'], 'clubs': ['A', '10', 'K'], 'diamonds': ['A', '10', 'K'] },
+        { 'spades': ['A', 'A', '10', '10', 'K', 'K', 'Q', 'Q', 'J', 'J'], 'diamonds': ['A', '10'], 'hearts': [], 'clubs': [] },
+        { 'clubs': ['Q', 'Q', 'J', 'J', '9', '9'], 'hearts': ['Q', 'Q', 'J', 'J', '9', '9'], 'spades': [], 'diamonds': [] },
+        { 'diamonds': ['Q', 'Q', 'J', 'J', '9', '9'], 'spades': ['9', '9'], 'clubs': ['A', '10'], 'hearts': ['A', '10'] }
+    ]
     
     game.update_hands(full_hands)
 
     print("--- Testing Sleep Function ---")
     
-    # 1. North plays, then wait 2 seconds
-    game.play_card('North', ('Hearts', 'A'))
-    game.sleep(2.0) # <--- Window stays responsive here
+    # 1. Accepts uppercase parameter format seamlessly 
+    game.play_card('North', ('HEARTS', 'A'))
+    game.sleep(2.0) 
     
-    # 2. East plays, then wait 2 seconds
-    game.play_card('East', ('9', 'Hearts'))
-    game.sleep(2.0) # <--- Window stays responsive here
+    # 2. Handles alternate flipped-tuple parameters gracefully
+    game.play_card('East', ('9', 'HEARTS'))
+    game.sleep(2.0) 
     
     print("System Ready. Polling for user clicks...")
     
@@ -354,5 +354,5 @@ if __name__ == "__main__":
         game.render()
         user_card = game.get_latest_from_user()
         if user_card:
-            print(f"GAME LOGIC: Received input {user_card}")
+            print(f"GAME LOGIC: Received input {user_card}")  # Will print out uppercase suit variant
             game.play_card('South', user_card)
