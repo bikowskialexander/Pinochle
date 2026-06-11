@@ -36,9 +36,13 @@ QWEN_3_5_0_8B = "qwen3.5:0.8b"
 QWEN_3_5_9B = "qwen3.5:9b"
 QWEN_3_5_4B = "qwen3.5:4b"
 NEMOTRON_MINI_4B = "nemotron-mini:4b"
+COGITO = "cogito:latest"
 
 
-DEFAULT_MODEL = QWEN_3_5_4B
+DEFAULT_MODEL = QWEN_3_5_9B
 
 PASS_FAILURE_MESSAGE = "The last output given was not accepted. Please Try Again."
+
+# How many times a model is given to give the correct answer before game over
+ATTEMPTS_TILL_FAILURE = 10
 

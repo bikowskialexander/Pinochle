@@ -3,6 +3,7 @@
 import ast 
 import re
 from typing import Tuple
+import copy 
 
 from Constants import *
 
@@ -120,7 +121,6 @@ def parse_passed_cards(response_str: str) -> list:
         return []
 
 
-# This needs to be adjusted for multiple of the same card
 def check_passed(hand, response : str):
     try:
         cards = parse_passed_cards(response)
@@ -128,10 +128,11 @@ def check_passed(hand, response : str):
         if len(cards) != 4:
             return False 
         
+        hand_copy = copy.deepcopy(hand)
         for card in cards:
-            if is_a_card(card) == False or has_card(hand, card) == False:
+            if is_a_card(card) == False or has_card(hand_copy, card) == False:
                 return False
-
+            hand_copy[card[0].upper()].remove(card[1])
         return True 
     
     except:
@@ -141,7 +142,6 @@ def check_passed(hand, response : str):
 # ---------------------------------------------------
 #                   For Meld
 # ---------------------------------------------------
-
 
 
 def is_meld(name):
@@ -420,14 +420,16 @@ def check_trick(played, hand, card : str, trumps):
     """
     Main entry point for verifying if playing 'card' is legal.
     """
-    card = str(card)
-    card = parse_card(card)
-    if len(played) == 0:
-        return check_trick_first(hand, card)
-    else:
-        # Fixed parameter pass sequence to match check_tricks_after_first
-        return check_tricks_after_first(card, hand, played, trumps)
-
+    try:
+        card = str(card)
+        card = parse_card(card)
+        if len(played) == 0:
+            return check_trick_first(hand, card)
+        else:
+            # Fixed parameter pass sequence to match check_tricks_after_first
+            return check_tricks_after_first(card, hand, played, trumps)
+    except ValueError:
+        return False
 
 
 

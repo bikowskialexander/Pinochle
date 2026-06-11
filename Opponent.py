@@ -111,9 +111,25 @@ class Ollama_Opponent(Opponent):
         
         return self._message_and_response(new_message_content)
 
-    def get_trumps(self, hand, additional_message=""):
-        new_message_content = "You are picking trumps. Here is your hand " + str(hand)
-        new_message_content += "\nOut only a suit" 
+    def get_trumps(self, hand: dict, additional_message="") -> str:
+        new_message_content = (
+            "You are playing Pinochle and have won the bid. You must now declare the trump suit.\n\n"
+            "CRITICAL RULES AND FORMATTING CONSTRAINTS:\n"
+            "- You must ONLY output a single suit string name.\n"
+            "- The suit name must be written in ALL CAPS (e.g., SPADES, HEARTS, CLUBS, or DIAMONDS).\n"
+            "- Do not wrap your response in markdown code blocks (do not use ```text or ```).\n"
+            "- Do not include any punctuation, quotes, filler words, or explanatory sentences.\n"
+            "- Your output must contain the single word for the suit and absolutely nothing else.\n\n"
+        )
+        
+        # Inject the feedback/error message if a previous attempt failed validation
+        if additional_message:
+            new_message_content += f"ATTENTION (PREVIOUS ATTEMPT FAILED):\n{additional_message}\n\n"
+        
+        # Inject the raw hand data for the test evaluation
+        new_message_content += f"Your Hand Data: {str(hand)}\n\n"
+        new_message_content += "Evaluate your hand strength and declare the trump suit now:"
+        
         return self._message_and_response(new_message_content)
     
     def get_pass(self, hand: dict, trumps: str, additional_message="") -> str:

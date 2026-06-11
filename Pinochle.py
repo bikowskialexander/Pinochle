@@ -14,7 +14,7 @@ from Opponent import Opponent, Ollama_Opponent
 class Pinochle:
 
     def __init__(self) -> None:
-        self.players = [Ollama_Opponent(), Ollama_Opponent(), Ollama_Opponent(), Ollama_Opponent()]
+        self.players = [Opponent(), Opponent(), Opponent(), Opponent()]
         self.move_index = 0
         self.stage = "BID"
         self.current_bid = 250
@@ -34,6 +34,9 @@ class Pinochle:
         for i in range(4):
             self.hands.append(Deck.draw_hand(deck, 12))
         self.ui.update_hands(self.hands)
+        self.winner = -1
+        self.stage = "BID"
+        self.tricks_left = 12 
 
     def define_order(self):
         self.order = []
@@ -43,6 +46,9 @@ class Pinochle:
             self.order.append(i)
 
     def step(self) -> dict:
+        if self.game_over() != -1:
+            print("Game won by", self.winner, "team")
+            self.setup()
         print(self.stage)
         self.define_order()
         if self.stage == "BID":
@@ -60,11 +66,6 @@ class Pinochle:
             self.stage = "TRICKS"
         elif self.stage == "TRICKS":
             self.do_tricks()
-            if self.game_over() != -1:
-                self.stage = "GAME OVER"
-            elif self.tricks_left <= 0:
-                self.stage = "BID"
-                self.tricks_left = 12 
 
     def _add_to_logs(self, adding):
         self.files.write(adding + "\n")
@@ -79,9 +80,21 @@ class Pinochle:
                     if players_left[i]:
                         bid = self.players[i].get_bid(self.current_bid, self.hands[i])
                         self._add_to_logs(bid)
-                        while not checks.is_a_bid(bid, self.current_bid):
+                        # Number of attempts the llm has taken
+                        attempts = 1
+
+                        while not checks.is_a_bid(bid, self.current_bid) and attempts < ATTEMPTS_TILL_FAILURE:
                             bid = self.players[i].get_bid(self.current_bid, self.hands[i])
+                            
+                            # Add attempt
+                            attempts += 1
+                            
                             self._add_to_logs(bid)
+                        if attempts >= ATTEMPTS_TILL_FAILURE:
+                            if i == 0 or i == 2:
+                                self.winner = 1
+                            else:
+                                self.winner = 0
                         if bid != "PASS":
                             self.current_bid = bid
                         else:
@@ -95,17 +108,35 @@ class Pinochle:
     def do_trumps(self):
         request = self.players[self.bid_taker_index].get_trumps(self.hands[self.bid_taker_index]) 
         self._add_to_logs(request)
-        while not checks.is_a_suit(request):
+
+        attempts = 1
+        while not checks.is_a_suit(request) and attempts < ATTEMPTS_TILL_FAILURE:
             request = self.players[self.bid_taker_index].get_trumps(self.hands[self.bid_taker_index]) 
             self._add_to_logs(request)
+            attempts += 1
+
+        # If too many attempts taken, the bidding team loses
+        if attempts >= ATTEMPTS_TILL_FAILURE:
+            if self.bid_taker_index == 0 or self.bid_taker_index == 2:
+                self.winner = 1
+            else:
+                self.winner = 0
+
         return request.upper()
     
     def get_valid_pass(self, index):
         request = self.players[index].get_pass(self.hands[index], self.trumps).upper()
         self._add_to_logs(request)
-        while not checks.check_passed(self.hands[index], request):
+        attempts = 1
+        while not checks.check_passed(self.hands[index], request) and attempts < ATTEMPTS_TILL_FAILURE:
             request = self.players[index].get_pass(self.hands[index], self.trumps, PASS_FAILURE_MESSAGE).upper()
             self._add_to_logs(request)
+            attempts += 1
+        if attempts >= ATTEMPTS_TILL_FAILURE:
+            if index == 0 or index == 2:
+                self.winner = 1
+            else:
+                self.winner = 0
         return request 
 
     def do_pass(self):
@@ -134,23 +165,31 @@ class Pinochle:
             p = checks.parse_game_string(m)
             if len(p) > 0:
                 points += MELD_POINTS[p[0].lower()]
-        print("MELD ACCEPTED")
         return points
 
     def do_meld(self):
         for i in range(len(self.players)):
             meld = self.players[i].get_meld(self.hands[i], self.trumps).strip()
             self._add_to_logs(meld)
-            while not checks.check_meld_valid(self.hands[i], str(meld), self.trumps):
+            attempts = 1
+            while attempts < ATTEMPTS_TILL_FAILURE and not checks.check_meld_valid(self.hands[i], str(meld), self.trumps):
                 meld = self.players[0].get_meld(self.hands[i], self.trumps)
                 self._add_to_logs(meld)
+                attempts += 1
+            if attempts >= ATTEMPTS_TILL_FAILURE:
+                if i == 0 or i == 2:
+                    self.winner = 1
+                else:
+                    self.winner = 0
             if i == 0 or i == 2:
                 self.point_values[0] += self.meld_value(meld)
             else:
                 self.point_values[1] += self.meld_value(meld)
 
     def game_over(self):
-        if self.point_values[0] >= 250:
+        if self.winner != -1:
+            return self.winner
+        elif self.point_values[0] >= 250:
             return 0
         elif self.point_values[1] >= 250:
             return 1
@@ -163,9 +202,16 @@ class Pinochle:
         for i in self.order:
             trick = self.players[i].get_tricks(self.hands[i], self.trumps, self.played) 
             self._add_to_logs(trick)
-            while not checks.check_trick(self.played, self.hands[i], trick, self.trumps):
+            attempts = 1
+            while attempts < ATTEMPTS_TILL_FAILURE and not checks.check_trick(self.played, self.hands[i], trick, self.trumps):
                 trick = self.players[i].get_tricks(self.hands[i], self.trumps, self.played) 
                 self._add_to_logs(trick)
+                attempts += 1
+            if attempts >= ATTEMPTS_TILL_FAILURE:
+                if i == 0 or i == 2:
+                    self.winner = 1
+                else:
+                    self.winner = 0
             trick = checks.parse_card(trick)
             self.hands[i][trick[0]].remove(trick[1])
             self.played.append(trick)
