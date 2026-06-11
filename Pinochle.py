@@ -9,7 +9,8 @@ from UI import PinochleUI
 
 from Constants import *
 
-from Opponent import Opponent, Ollama_Opponent
+from Opponent import Opponent
+from Ollama_opponent import Ollama_Opponent
 
 class Pinochle:
 

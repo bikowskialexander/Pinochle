@@ -1,50 +1,217 @@
-
+PASS
 ---------------------------
-
+260
 ---------------------------
 PASS
 ---------------------------
-PASS
----------------------------
-
----------------------------
-
----------------------------
-
+270
 ---------------------------
 PASS
 ---------------------------
 HEARTS
 ---------------------------
-[['HEARTS', 'Q'], ['HEARTS', 'J'], ['HEARTS', '10'], ['SPADES', 'Q']]
+[['HEARTS', 'Q'], ['HEARTS', 'K'], ['HEARTS', '9'], ['SPADES', 'J']]
 ---------------------------
-[['HEARTS', 'A'], ['HEARTS', 'A'], ['HEARTS', '9'], ['HEARTS', 'K']]
+[['HEARTS', '9'], ['HEARTS', 'K'], ['HEARTS', 'A'], ['HEARTS', 'A']]
 ---------------------------
-["aces", ('clubs', 'a'), ('clubs', 'a')]
+["Run", ('HEARTS', 'J'), ('HEARTS', '10'), ('HEARTS', 'J')]
+["Marriage", ('SPADES', 'A'), ('DIAMONDS', 'K')]
+["Run", ('CLUBS', '9'), ('CLUBS', 'J'), ('CLUBS', '9'), ('CLUBS', 'A'), ('CLUBS', 'K')]
 ---------------------------
-["nine of trumps", ('HEARTS', '9')]
----------------------------
-['marriage', ('SPADES', 'K'), ('SPADES', 'Q')]
----------------------------
-["Aces", ('SPADES', 'A'), ('DIAMONDS', 'A')]
----------------------------
+["run", ('HEARTS', 'J'), ('DIAMONDS', 'K'), ('CLUBS', 'A'), ('CLUBS', '9'), ('CLUBS', 'J')]
 
+--- EXAMPLE 3 ---
+Hand Data Input:
+{'spades': ['A', '10', '9'], 'diamonds': ['K', '9'], 'hearts': ['J', '9'], 'clubs': ['A', '10', 'K', 'J', '9']}
+Trump Suit: HEARTS
+Valid meld names you can use: ['nine of trumps', 'marriage', 'royal marriage', 'run', 'pinochle', 'double pinochle', 'aces', 'kings', 'queens', 'jacks']
+
+Construct your highest scoring valid melds and output them now following the line-separated example structure exactly:
+---------------------------
+["Run", ('HEARTS', 'J'), ('HEARTS', '10'), ('HEARTS', 'J')], ["Marriage", ('SPADES', 'Q'), ('DIAMONDS', 'K')], ["Queens", ('SPADES', 'Q'), ('CLUBS', 'Q')]
+---------------------------
+["Run", ('HEARTS', 'J'), ('HEARTS', '9'), ('HEARTS', 'J')], ["Marriage", ('SPADES', 'Q'), ('DIAMONDS', 'K')], ["Royal Marriage", ('CLUBS', 'A'), ('CLUBS', '10'), ('CLUBS', 'K'), ('CLUBS', 'J'), ('HEARTS', 'J'), ('HEARTS', '9'), ('SPADES', 'Q'), ('DIAMONICS', None)]]
+---------------------------
+["Royal Marriage", ('HEARTS', 'K'), ('HEARTS', 'Q')]"
+---------------------------
+["Royal Marriage", ('HEARTS', 'J'), ('HEARTS', '9')], ["Marriage", ('SPADES', 'Q'), ('DIAMONDS', 'K')], ["Run", ('CLUBS', 'A'), ('CLUBS', '10'), ('CLUBS', 'K'), ('CLUBS', 'J')]
+---------------------------
+["Run", ('HEARTS', 'J'), ('HEARTS', '10'), ('HEARTS', 'J')]
+["Marriage", ('SPADES', 'Q'), ('SPADES', 'Q')]
+["Pinochle", ('HEARTS', 'J'), ('DIAMONDS', 'K')]
+---------------------------
+["Run", ('HEARTS', 'J'), ('HEARTS', '10'), ('HEARTS', 'J')]
+["Marriage", ('SPADES', 'Q'), ('DIAMONDS', 'K')]
+---------------------------
+["marriage", ('HEARTS', 'J'), ('HEARTS', '9')], ["run", ('HEARTS', 'J'), ('HEARTS', '10'), ('HEARTS', 'Q')]]
+---------------------------
+["Marriage", ('HEARTS', 'J'), ('HEARTS', '10')], ["Nine of Hearts", ('HEARTS', '9'), ('DIAMONDS', 'A'), ('DIAMONDS', 'K'), ('DIAMONDS', 'Q'), ('DIAMONDS', 'J'), ('CLUBS', 'A'), ('CLUBS', '10')], ["Run", ('HEARTS', 'J'), ('HEARTS', '10'), ('HEARTS', '9')]
 ---------------------------
 ['nine of trumps', ('HEARTS', '9')]
 ---------------------------
-('HEARTS', 'A')
+["run", ('HEARTS', 'Q'), ('DIAMONDS', 'A'), ('CLUBS', 'Q'), ('CLUBS', 'Q')]
+["royal marriage", ('HEARTS', '10'), ('SPADES', '9')]
 ---------------------------
+["nine of trumps", ('HEARTS', 'J'), ('HEARTS', '9')]
+["run", ('HEARTS', '10'), ('HEARTS', 'Q'), ('DIAMONDS', 'K'), ('DIAMONDS', '9'), ('CLUBS', 'Q')]
+---------------------------
+["run", ('HEARTS', '10'), ('HEARTS', 'Q'), ('DIAMONDS', 'A'), ('DIAMONDS', 'K'), ('CLUBS', 'Q')]
 
----------------------------
-('CLUBS', '10')
----------------------------
-('SPADES', 'J')
----------------------------
-('HEARTS', 'Q')
----------------------------
+--- EXAMPLE 3 ---
+Hand Data Input:
+{'spades': ['9', '10', '10'], 'diamonds': ['10', '10', 'J', 'Q', 'A'], 'hearts': ['J', '9'], 'clubs': ['Q', 'Q']}
+Trump Suit: HEARTS
+Valid meld names you can use: ['nine of trumps', 'marriage', 'royal marriage', 'run', 'pinochle', 'double pinochle', 'aces', 'kings', 'queens', 'jacks']
 
----------------------------
+Construct your highest scoring valid melds and output them now following the line-separated example structure exactly:
 
----------------------------
+You are playing Pinochle and are in the Meld phase
+Your task is to declare your melds using the cards from your hand.
 
+CRITICAL OUTPUT FORMAT RULES:
+- You must output your melds as a valid Python list of lists.
+- Each inner list must represent ONE meld, starting with the meld name string followed by the card tuples.
+- The card tuples must strictly use the format: ('SUIT', 'rank') with uppercase suits.
+- EACH MELD LIST MUST BE ON ITS OWN LINE.
+- Do not wrap the output in markdown code blocks like ```python ... ```. Output raw text only.
+- Do not include any analysis, introduction, or commentary.
+
+EXACT INPUT AND OUTPUT EXAMPLES TO FOLLOW:
+
+--- EXAMPLE 1 ---
+Hand Data Input:
+{'spades': ['A', '10', 'K', 'Q', 'J'], 'diamonds': ['J'], 'hearts': ['K', 'Q'], 'clubs': []}
+Trump Suit: SPADES
+
+Expected Output:
+[
+  ["Run", ('SPADES', 'A'), ('SPADES', '10'), ('SPADES', 'K'), ('SPADES', 'Q'), ('SPADES', 'J')],
+  ["Marriage", ('HEARTS', 'K'), ('HEARTS', 'Q')],
+  ["Pinochle", ('SPADES', 'Q'), ('DIAMONDS', 'J')]
+]
+
+--- EXAMPLE 2 ---
+Hand Data Input:
+{'spades': ['Q'], 'diamonds': ['A', 'K', 'Q', 'J'], 'hearts': [], 'clubs': ['A', 'A', '10']}
+Trump Suit: CLUBS
+
+Expected Output:
+[
+  ["Marriage", ('DIAMONDS', 'K'), ('DIAMONDS', 'Q')]
+]
+
+--- EXAMPLE 3 ---
+Hand Data Input:
+{'spades': ['A', '10', '9'], 'diamonds': ['K', '9'], 'hearts': ['J', '9'], 'clubs': ['A', '10', 'K', 'J', '9']}
+Trump Suit: HEARTS
+
+Expected Output:
+
+
+Your current hand is: {'len': 12, 'HEARTS': ['10', 'Q'], 'SPADES': ['9', '10', '10'], 'DIAMONDS': ['10', '10', 'J', 'Q', 'A'], 'CLUBS': ['Q', 'Q']}
+The trump suit is: HEARTS
+Valid meld names you can use: ['nine of trumps', 'marriage', 'royal marriage', 'run', 'pinochle', 'double pinochle', 'aces', 'kings', 'queens', 'jacks']
+
+Construct your highest scoring valid melds and output them now following the line-separated example structure exactly:
+
+You are playing Pinochle and are in the Meld phase
+Your task is to declare your melds using the cards from your hand.
+
+CRITICAL OUTPUT FORMAT RULES:
+- You must output your melds as a valid Python list of lists.
+- Each inner list must represent ONE meld, starting with the meld name string followed by the card tuples.
+- The card tuples must strictly use the format: ('SUIT', 'rank') with uppercase suits.
+- EACH MELD LIST MUST BE ON ITS OWN LINE.
+- Do not wrap the output in markdown code blocks like ```python ... ```. Output raw text only.
+- Do not include any analysis, introduction, or commentary.
+
+EXACT INPUT AND OUTPUT EXAMPLES TO FOLLOW:
+
+--- EXAMPLE 1 ---
+Hand Data Input:
+{'spades': ['A', '10', 'K', 'Q', 'J'], 'diamonds': ['J'], 'hearts': ['K', 'Q'], 'clubs': []}
+Trump Suit: SPADES
+
+Expected Output:
+[
+  ["Run", ('SPADES', 'A'), ('SPADES', '10'), ('SPADES', 'K'), ('SPADES', 'Q'), ('SPADES', 'J')],
+  ["Marriage", ('HEARTS', 'K'), ('HEARTS', 'Q')],
+  ["Pinochle", ('SPADES', 'Q'), ('DIAMONDS', 'J')]
+]
+
+--- EXAMPLE 2 ---
+Hand Data Input:
+{'spades': ['Q'], 'diamonds': ['A', 'K', 'Q', 'J'], 'hearts': [], 'clubs': ['A', 'A', '10']}
+Trump Suit: CLUBS
+
+Expected Output:
+[
+  ["Marriage", ('DIAMONDS', 'K'), ('DIAMONDS', 'Q')]
+]
+
+--- EXAMPLE 3 ---
+Hand Data Input:
+{'spades': ['A', '10', '9'], 'diamonds': ['K', '9'], 'hearts': ['J', '9'], 'clubs': ['A', '10', 'K', 'J', '9']}
+Trump Suit: HEARTS
+
+Expected Output:
+
+
+Your current hand is: {'len': 12, 'HEARTS': ['J', '10'], 'SPADES': ['9', '10', '10'], 'DIAMONDS': ['10', '10', 'J', 'Q', 'A'], 'CLUBS': ['Q', 'Q']}
+The trump suit is: HEARTS
+Valid meld names you can use: ['nine of trumps', 'marriage', 'royal marriage', 'run', 'pinochle', 'double pinochle', 'aces', 'kings', 'queens', 'jacks']
+
+Construct your highest scoring valid melds and output them now following the line-separated example structure exactly:
+
+You are playing Pinochle and are in the Meld phase
+Your task is to declare your melds using the cards from your hand.
+
+CRITICAL OUTPUT FORMAT RULES:
+- You must output your melds as a valid Python list of lists.
+- Each inner list must represent ONE meld, starting with the meld name string followed by the card tuples.
+- The card tuples must strictly use the format: ('SUIT', 'rank') with uppercase suits.
+- EACH MELD LIST MUST BE ON ITS OWN LINE.
+- Do not wrap the output in markdown code blocks like ```python ... ```. Output raw text only.
+- Do not include any analysis, introduction, or commentary.
+
+EXACT INPUT AND OUTPUT EXAMPLES TO FOLLOW:
+
+--- EXAMPLE 1 ---
+Hand Data Input:
+{'spades': ['A', '10', 'K', 'Q', 'J'], 'diamonds': ['J'], 'hearts': ['K', 'Q'], 'clubs': []}
+Trump Suit: SPADES
+
+Expected Output:
+[
+  ["Run", ('SPADES', 'A'), ('SPADES', '10'), ('SPADES', 'K'), ('SPADES', 'Q'), ('SPADES', 'J')],
+  ["Marriage", ('HEARTS', 'K'), ('HEARTS', 'Q')],
+  ["Pinochle", ('SPADES', 'Q'), ('DIAMONDS', 'J')]
+]
+
+--- EXAMPLE 2 ---
+Hand Data Input:
+{'spades': ['Q'], 'diamonds': ['A', 'K', 'Q', 'J'], 'hearts': [], 'clubs': ['A', 'A', '10']}
+Trump Suit: CLUBS
+
+Expected Output:
+[
+  ["Marriage", ('DIAMONDS', 'K'), ('DIAMON
+---------------------------
+["Marriage", ('HEARTS', 'J'), ('HEARTS', '10')]
+---------------------------
+["marriage", ('HEARTS', 'J'), ('HEARTS', '9')], ["run", ('HEARTS', '10'), ('HEARTS', 'Q')], ["nine of trumps", ('DIAMONDS', '10')], ["pinochle", ('SPADES', 'Q'), ('DIAMONDS', 'J')]]
+---------------------------
+["marriage", ('HEARTS', 'K'), ('HEARTS', 'Q')], ["run", ('HEARTS', 'J'), ('HEARTS', '10'), ('SPADES', '9'), ('DIAMONDS', '10'), ('CLUBS', 'Q')]]
+---------------------------
+["Marriage", ('HEARTS', 'K'), ('HEARTS', 'Q')], ["Nine of Trumps", ('DIAMONDS', 'J'), ('CLUBS', 'A'), ('CLUBS', '10'), ('CLUBS', 'K'), ('CLUBS', 'J'), ('SPADES', '9'), ('SPADES', '10'), ('SPADES', '10')]]
+---------------------------
+["Run", ('HEARTS', '10'), ('HEARTS', 'Q')], ["Marriage", ('DIAMONDS', 'K'), ('DIAMONDS', 'J')], ["Pinochle", ('SPADES', 'Q'), ('DIAMONICS', 'J')]
+---------------------------
+["Marriage", ('DIAMONDS', 'K'), ('DIAMONICS', 'Q')], ["Run", ('HEARTS', 'J'), ('HEARTS', '10')]]
+---------------------------
+["run", ('HEARTS', 'Q'), ('HEARTS', '10')]
+["marriage", ('DIAMONDS', 'K'), ('DIAMONDS', 'J')]
+---------------------------
+['royal marriage', ('HEARTS', 'K'), ('HEARTS', 'Q')]
+['nine of trumps', ('HEARTS', '9')]
 ---------------------------

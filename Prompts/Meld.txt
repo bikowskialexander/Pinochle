@@ -1,0 +1,44 @@
+You are playing Pinochle and are in the Meld phase
+Your task is to declare your melds using the cards from your hand.
+
+CRITICAL OUTPUT FORMAT RULES:
+- You must output your melds as a valid Python list of lists.
+- Each inner list must represent ONE meld, starting with the meld name string followed by the card tuples.
+- The card tuples must strictly use the format: ('SUIT', 'rank') with uppercase suits.
+- EACH MELD LIST MUST BE ON ITS OWN LINE.
+- Do not wrap the output in markdown code blocks like ```python ... ```. Output raw text only.
+- Do not include any analysis, introduction, or commentary.
+
+
+EXACT INPUT AND OUTPUT EXAMPLES TO FOLLOW:
+
+--- EXAMPLE 1 ---
+Hand Data Input:
+{'spades': ['A', '10', 'K', 'Q', 'J'], 'diamonds': ['J'], 'hearts': ['K', 'Q'], 'clubs': []}
+Trump Suit: SPADES
+
+Expected Output:
+[
+  ["Run", ('SPADES', 'A'), ('SPADES', '10'), ('SPADES', 'K'), ('SPADES', 'Q'), ('SPADES', 'J')],
+  ["Marriage", ('HEARTS', 'K'), ('HEARTS', 'Q')],
+  ["Pinochle", ('SPADES', 'Q'), ('DIAMONDS', 'J')]
+]
+
+--- EXAMPLE 2 ---
+Hand Data Input:
+{'spades': ['Q'], 'diamonds': ['A', 'K', 'Q', 'J'], 'hearts': [], 'clubs': ['A', 'A', '10']}
+Trump Suit: CLUBS
+
+Expected Output:
+[
+  ["Marriage", ('DIAMONDS', 'K'), ('DIAMONDS', 'Q')]
+]
+
+--- EXAMPLE 3 ---
+Hand Data Input:
+{'spades': ['A', '10', '9'], 'diamonds': ['K', '9'], 'hearts': ['J', '9'], 'clubs': ['A', '10', 'K', 'J', '9']}
+Trump Suit: HEARTS
+
+Expected Output:
+
+

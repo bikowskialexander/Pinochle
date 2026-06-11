@@ -63,7 +63,7 @@ COGITO = "cogito:latest"
 LLAMA_3_2 = "llama3.2:latest"
 
 # Used model 
-DEFAULT_MODEL = QWEN_3_5_9B
+DEFAULT_MODEL = GRANITE4_1_3B
 
 
 # ========================================
