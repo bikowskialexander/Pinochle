@@ -1,134 +1,60 @@
 260
 ---------------------------
-270
+PASS
 ---------------------------
 PASS
 ---------------------------
-260
----------------------------
-270
----------------------------
 PASS
 ---------------------------
-270
+DIAMONDS
 ---------------------------
-270
+[('DIAMONDS', 'J'), ('DIAMONDS', 'Q'), ('SPADES', 'K'), ('HEARTS', '10')]
 ---------------------------
-270
----------------------------
-270
----------------------------
-270
----------------------------
-PASS
----------------------------
-HEARTS
----------------------------
-[('HEARTS', 'Q'), ('SPADES', 'A'), ('DIAMONDS', '9'), ('CLUBS', '10')]
----------------------------
-[('HEARTS', 'J'), ('HEARTS', '10'), ('DIAMONDS', 'Q'), ('SPADES', 'A')]
+[('SPADES', 'K'), ('SPADES', 'Q'), ('CLUBS', 'Q'), ('DIAMONDS', '9')]
 ---------------------------
 [
-  ["Royal Marriage", ('HEARTS', 'A'), ('HEARTS', 'K')]
+  ["Run", ('DIAMONDS', 'A'), ('DIAMONDS', '9'), ('DIAMONDS', '9'), ('DIAMONDS', 'K'), ('DIAMONDS', 'Q')]
 ]
+---------- Played by 0---
+["Run", ('SPADES', 'A'), ('SPADES', '10'), ('SPADES', 'K'), ('SPADES', 'Q'), ('SPADES', 'J')]
 ---------------------------
-[
-  ["Run", ('SPADES', 'Q'), ('HEARTS', 'A'), ('HEARTS', 'K'), ('HEARTS', 'J'), ('HEARTS', '10')]
-]
+["Run", ('SPADES', 'A'), ('SPADES', '10'), ('SPADES', 'K'), ('SPADES', 'Q'), ('SPADES', 'J')]
 ---------------------------
-[
-  ["Pinochle", ('SPADES', 'Q'), ('DIAMONDS', 'J')]
-]
+["Run", ('DIAMONDS', 'A'), ('DIAMONDS', '10'), ('DIAMONDS', 'K'), ('DIAMONDS', 'Q'), ('DIAMONDS', 'J')]
 ---------------------------
-[
-  ["Run", ('HEARTS', 'K'), ('SPADES', 'Q'), ('DIAMONDS', 'J')]
-]
+["Run", ('DIAMONDS', 'A'), ('DIAMONDS', '10'), ('DIAMONDS', 'K'), ('DIAMONDS', 'Q'), ('DIAMONDS', 'J')]
 ---------------------------
-[
-  ["Royal Marriage", ('HEARTS', 'K'), ('HEARTS', 'Q')]
-],
-[
-  ["Run", ('SPADES', 'A'), ('DIAMONDS', 'J'), ('CLUBS', 'J'), ('HEARTS', 'K'), ('HEARTS', 'Q')]
-]
+["Run", ('DIAMONDS', 'A'), ('DIAMONDS', '10'), ('DIAMONDS', 'K'), ('DIAMONDS', 'Q'), ('DIAMONDS', 'J')]
 ---------------------------
-[
-  ["Royal Marriage", ('HEARTS', 'K'), ('HEARTS', 'Q')],
-  ["Run", ('SPADES', 'A'), ('DIAMONDS', 'J'), ('CLUBS', 'K')]
-]
+["Run", ('DIAMONDS', 'A'), ('DIAMONDS', '10'), ('DIAMONDS', 'K'), ('DIAMONDS', 'Q'), ('DIAMONDS', 'J')]
 ---------------------------
-[
-  ["Royal Marriage", ('HEARTS', 'K'), ('HEARTS', 'Q')],
-  ["Run", ('SPADES', 'A'), ('DIAMONDS', 'J')]
-]
+["Run", ('DIAMONDS', 'A'), ('DIAMONDS', '10'), ('DIAMONDS', 'K'), ('DIAMONDS', 'Q'), ('DIAMONDS', 'J')]
 ---------------------------
-[
-  ["Royal Marriage", ('HEARTS', 'K'), ('HEARTS', 'Q')]
-]
+["Run", ('DIAMONDS', 'A'), ('DIAMONDS', '10'), ('DIAMONDS', 'K'), ('DIAMONDS', 'Q'), ('DIAMONDS', 'J')]
 ---------------------------
-[
-  ["Run", ('SPADES', 'A'), ('SPADES', '10'), ('SPADES', 'K'), ('SPADES', 'Q'), ('SPADES', 'J')],
-  ["Royal Marriage", ('HEARTS', 'K'), ('HEARTS', 'Q')]
-]
+["Run", ('DIAMONDS', 'A'), ('DIAMONDS', '10'), ('DIAMONDS', 'K'), ('DIAMONDS', 'Q'), ('DIAMONDS', 'J')]
 ---------------------------
-[
-  ["Run", ('SPADES', 'A'), ('SPADES', '10'), ('SPADES', 'K'), ('SPADES', 'Q'), ('SPADES', 'J')],
-  ["Marriage", ('HEARTS', 'K'), ('HEARTS', 'Q')]
-]
----------------------------
-['marriage', ('DIAMONDS', 'K'), ('DIAMONDS', 'Q')]
 ['marriage', ('CLUBS', 'K'), ('CLUBS', 'Q')]
+---------- Played by 1---
+[
+  ["Run", ('DIAMONDS', '10'), ('DIAMONDS', 'J'), ('DIAMONDS', 'Q'), ('SPADES', 'K'), ('CLUBS', 'Q')]
+]
+---------- Played by 2---
+["Run", ('DIAMONDS', 'A'), ('DIAMONDS', '10'), ('DIAMONDS', 'K'), ('DIAMONDS', 'Q'), ('DIAMONDS', 'J')]
 ---------------------------
-[
-  ["Run", ('HEARTS', 'Q'), ('HEARTS', 'Q'), ('SPADES', 'A')]
-]
-[
-  ["Royal Marriage", ('SPADES', 'A'), ('HEARTS', 'Q')]
-]
+["Run", ('DIAMONDS', '10'), ('DIAMONDS', 'J'), ('DIAMONDS', 'Q'), ('SPADES', 'K'), ('HEARTS', 'Q')]
 ---------------------------
-[
-  ["Run", ('SPADES', 'A'), ('DIAMONDS', '9'), ('CLUBS', '10')]
-]
-[
-  ["Royal Marriage", ('HEARTS', 'Q')]
-]
+["Marriage", ('DIAMONDS', 'K'), ('DIAMONDS', 'Q')], ["Run", ('DIAMONDS', '10'), ('DIAMONDS', 'J'), ('DIAMONDS', 'Q')], ["Nine of trumps", ('DIAMONDS', '9')]
 ---------------------------
-[
-  ["Royal Marriage", ('HEARTS', 'Q'), ('HEARTS', 'Q')],
-  ["Run", ('SPADES', 'A'), ('DIAMONDS', 'K'), ('CLUBS', 'A')]
-]
+["Run", ('DIAMONDS', '10'), ('DIAMONDS', 'J'), ('DIAMONDS', 'Q'), ('SPADES', 'K'), ('SPADES', 'Q')]
 ---------------------------
-[
-  ["Run", ('HEARTS', 'Q'), ('HEARTS', 'Q')],
-  ["Royal Marriage", ('SPADES', 'A'), ('HEARTS', 'Q')]
-]
+["Run", ('DIAMONDS', 'A'), ('DIAMONDS', '10'), ('DIAMONDS', 'K'), ('DIAMONDS', 'Q'), ('DIAMONDS', 'J')]
 ---------------------------
-[
-  ["Pinochle", ('SPADES', 'Q'), ('DIAMONDS', 'J')]
-]
+["Run", ('DIAMONDS', 'A'), ('DIAMONDS', '10'), ('DIAMONDS', 'K'), ('DIAMONDS', 'Q'), ('DIAMONDS', 'J')]
 ---------------------------
-[
-  ["Run", ('SPADES', 'A'), ('DIAMONDS', 'K'), ('HEARTS', 'Q'), ('CLUBS', '10')]
-]
+["Run", ('DIAMONDS', 'A'), ('DIAMONDS', '10'), ('DIAMONDS', 'K'), ('DIAMONDS', 'Q'), ('DIAMONDS', 'J')]
 ---------------------------
-[
-  ["Double Pinochle", ('SPADES', 'A'), ('DIAMONDS', 'K'), ('HEARTS', 'Q'), ('CLUBS', 'J')]
-]
+["Run", ('DIAMONDS', 'A'), ('DIAMONDS', '10'), ('DIAMONDS', 'K'), ('DIAMONDS', 'Q'), ('DIAMONDS', 'J')]
 ---------------------------
-[
-  ["Run", ('SPADES', 'A'), ('DIAMONDS', '9'), ('HEARTS', 'Q'), ('CLUBS', '10')]
-]
-[
-  ["Royal Marriage", ('SPADES', 'A'), ('HEARTS', 'Q')]
-]
----------------------------
-[
-  ["Run", ('SPADES', 'A'), ('DIAMONDS', '9'), ('HEARTS', 'Q'), ('HEARTS', 'Q')]
-]
----------------------------
-[
-  ["Run", ('SPADES', 'A'), ('DIAMONDS', 'K'), ('CLUBS', 'Q'), ('HEARTS', 'J')]
-]
----------------------------
-['marriage', ('SPADES', 'K'), ('SPADES', 'Q')]
-['nine of trumps', ('HEARTS', '9')]
+["Marriage", ('DIAMONDS', 'K'), ('DIAMONDS', 'Q')], ["Run", ('DIAMONDS', 'J'), ('DIAMONDS', '10'), ('DIAMONDS', 'K'), ('DIAMONDS', 'Q'), ('DIAMONDS', '9')]
 ---------------------------

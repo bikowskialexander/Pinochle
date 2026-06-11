@@ -74,9 +74,12 @@ class Pinochle:
             self.do_tricks()
         return -1
 
-    def _add_to_logs(self, adding):
+    def _add_to_logs(self, adding, player=""):
         self.files.write(adding + "\n")
-        self.files.write('---------------------------\n')
+        if player == "":
+            self.files.write('---------------------------\n')
+        else:
+            self.files.write('---------- Played by ' + str(player) + '---\n')
 
     def do_bid(self):
         player_left_count = 4
@@ -179,7 +182,7 @@ class Pinochle:
     def do_meld(self):
         for i in range(len(self.players)):
             meld = self.players[i].get_meld(self.hands[i], self.trumps).strip()
-            self._add_to_logs(meld)
+            self._add_to_logs(meld, i)
             attempts = 1
             while attempts < ATTEMPTS_TILL_FAILURE and not checks.check_meld_valid(self.hands[i], str(meld), self.trumps):
                 meld = self.players[0].get_meld(self.hands[i], self.trumps)
