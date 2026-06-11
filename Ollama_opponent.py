@@ -107,12 +107,17 @@ class Ollama_Opponent(Opponent):
         return self._message_and_response(new_message_content)
     
     def get_meld(self, hand, trumps, additional_message="") -> str:
-
+        import Deck
+        Deck.print_deck(hand)
+        print(trumps)
+        print()
         # Read in file for meld prompt
         meld_file = open("Prompts/Meld.txt", 'r')
         new_message_content = meld_file.read()
         
         # Inject current game state
+        if additional_message != "":
+            new_message_content += f"ATTENTION (PREVIOUS ATTEMPT FAILED):\n{additional_message}\n\n"
         new_message_content += f"Your current hand is: {str(hand)}\n"
         new_message_content += f"The trump suit is: {str(trumps).upper()}\n"
         new_message_content += f"Valid meld names you can use: {str(MELD_OPTIONS)}\n\n"
