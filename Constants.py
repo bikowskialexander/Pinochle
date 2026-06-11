@@ -35,6 +35,8 @@ GRANITE4_350M = "granite4:350M"
 QWEN_3_5_0_8B = "qwen3.5:0.8b"
 QWEN_3_5_9B = "qwen3.5:9b"
 QWEN_3_5_4B = "qwen3.5:4b"
+QWEN_3_5_37B = "qwen3.5:27b"
+GPTOSS = "gpt-oss:latest"
 NEMOTRON_MINI_4B = "nemotron-mini:4b"
 COGITO = "cogito:latest"
 

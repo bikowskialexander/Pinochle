@@ -14,7 +14,7 @@ from Opponent import Opponent, Ollama_Opponent
 class Pinochle:
 
     def __init__(self) -> None:
-        self.players = [Opponent(), Opponent(), Opponent(), Opponent()]
+        self.players = [Ollama_Opponent(), Opponent(), Ollama_Opponent(), Opponent()]
         self.move_index = 0
         self.stage = "BID"
         self.current_bid = 250
@@ -48,12 +48,17 @@ class Pinochle:
     def step(self) -> dict:
         if self.game_over() != -1:
             print("Game won by", self.winner, "team")
+            last_winner = self.winner
             self.setup()
+            return last_winner
+        self.files.close()
+        self.files = open("logs/log.txt", 'a')
         print(self.stage)
         self.define_order()
         if self.stage == "BID":
             self.bid_taker_index = self.do_bid()
-            self.ui.set_score(['North', 'South', 'East', 'West'][self.bid_taker_index], self.current_bid)
+            if self.bid_taker_index != None:
+                self.ui.set_score(['North', 'South', 'East', 'West'][self.bid_taker_index], self.current_bid)
             self.stage = "TRUMPS"
         elif self.stage == "TRUMPS":
             self.trumps = self.do_trumps()
@@ -66,6 +71,7 @@ class Pinochle:
             self.stage = "TRICKS"
         elif self.stage == "TRICKS":
             self.do_tricks()
+        return -1
 
     def _add_to_logs(self, adding):
         self.files.write(adding + "\n")
@@ -95,6 +101,8 @@ class Pinochle:
                                 self.winner = 1
                             else:
                                 self.winner = 0
+                            self.bid_taker_index = None 
+                            return None 
                         if bid != "PASS":
                             self.current_bid = bid
                         else:
@@ -220,8 +228,7 @@ class Pinochle:
 
     def run(self):
         self.ui.render()
-        while 1:
-            self.step()
+        while self.step() == -1:
             self.ui.update_hands(self.hands)
             self.ui.render()
 
