@@ -9,7 +9,8 @@ from UI import PinochleUI
 
 from Constants import *
 
-from Opponent import Opponent, Ollama_Opponent
+from Opponent import Opponent
+from Ollama_opponent import Ollama_Opponent
 
 class Pinochle:
 
@@ -45,6 +46,12 @@ class Pinochle:
         for i in range(0, self.move_index):
             self.order.append(i)
 
+    def clear_messages(self):
+        for i in range(4):
+            system_prompt = self.players[i].messages[0]
+            self.players[i].messages.clear()
+            self.players[i].messages.append(system_prompt)
+
     def step(self) -> dict:
         if self.game_over() != -1:
             print("Game won by", self.winner, "team")
@@ -73,9 +80,12 @@ class Pinochle:
             self.do_tricks()
         return -1
 
-    def _add_to_logs(self, adding):
+    def _add_to_logs(self, adding, player=""):
         self.files.write(adding + "\n")
-        self.files.write('---------------------------\n')
+        if player == "":
+            self.files.write('---------------------------\n')
+        else:
+            self.files.write('---------- Played by ' + str(player) + '----------\n')
 
     def do_bid(self):
         player_left_count = 4
@@ -178,11 +188,11 @@ class Pinochle:
     def do_meld(self):
         for i in range(len(self.players)):
             meld = self.players[i].get_meld(self.hands[i], self.trumps).strip()
-            self._add_to_logs(meld)
+            self._add_to_logs(meld, i)
             attempts = 1
             while attempts < ATTEMPTS_TILL_FAILURE and not checks.check_meld_valid(self.hands[i], str(meld), self.trumps):
-                meld = self.players[0].get_meld(self.hands[i], self.trumps)
-                self._add_to_logs(meld)
+                meld = self.players[0].get_meld(self.hands[i], self.trumps).strip()
+                self._add_to_logs(meld, i)
                 attempts += 1
             if attempts >= ATTEMPTS_TILL_FAILURE:
                 if i == 0 or i == 2:
@@ -206,13 +216,16 @@ class Pinochle:
     def do_tricks(self):
         self.move_index = self.bid_taker_index
         self.define_order()
+        print(self.order)
         self.played = []
         for i in self.order:
             trick = self.players[i].get_tricks(self.hands[i], self.trumps, self.played) 
             self._add_to_logs(trick)
             attempts = 1
+            print(trick)
             while attempts < ATTEMPTS_TILL_FAILURE and not checks.check_trick(self.played, self.hands[i], trick, self.trumps):
-                trick = self.players[i].get_tricks(self.hands[i], self.trumps, self.played) 
+                trick = self.players[i].get_tricks(self.hands[i], self.trumps, self.played, TRICK_FAILURE_MESSAGE + trick) 
+                print(trick)
                 self._add_to_logs(trick)
                 attempts += 1
             if attempts >= ATTEMPTS_TILL_FAILURE:

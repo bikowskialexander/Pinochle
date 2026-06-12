@@ -14,3 +14,19 @@
 5. **Phase 5 – Tricks**  
    * Play one card per trick. Highest card of the led suit (or highest trump) wins the trick.  
 
+Meld:
+Pinochle melds are formed using specific card combinations from a player's hand after the trump suit is declared.
+
+- Aces Around: Requires the A of Spades, Diamonds, Hearts, and Clubs.
+- Kings Around: Requires the K of Spades, Diamonds, Hearts, and Clubs.
+- Queens Around: Requires the Q of Spades, Diamonds, Hearts, and Clubs.
+- Jacks Around: Requires the J of Spades, Diamonds, Hearts, and Clubs.
+- Run: Consists of the top five trump cards in sequence: A, 10, K, Q, and J.
+- Pinochle: Requires the specific combination of the Q of Spades and the J of Diamonds.
+- Double Pinochle: Occurs when a player holds two Q of Spades and two J of Diamonds simultaneously.
+- Royal Marriage: Requires the K and Q of the declared trump suit.
+- Marriage: Requires a K and Q of the same non-trump suit.
+- nine of trumps: The 9 of the declared trump suit, which is the lowest trump card.
+
+
+CRITICAL: If an output is not accepted, you will be prompted again with a message informing you of the failure. Do not repeat the first output.

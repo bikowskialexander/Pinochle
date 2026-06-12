@@ -1,0 +1,117 @@
+You are playing Pinochle and are in the trick-taking phase.
+Your output must be strictly limited to a single valid Python tuple in the format: ('SUIT', 'rank') with uppercase suits.
+Do not include any introductory commentary, thinking text, analysis, pleasantries, or surrounding markdown code blocks. Only the card to be played should be output. Output EXACTLY ONE card tuple and absolutely nothing else. 
+
+CRITICAL: Any conversational text, explanation, intro, or outro text outside of the tuple structure will cause the parsing engine to crash and fail your test script completely.
+
+Rules Reminders:
+- You must follow the lead suit if you are able to.
+- If you can follow the lead suit, you must beat the highest card of that suit on the table if possible.
+- If you have multiple cards of the lead suit that can beat the current highest card on the table, you may choose to play any of those winning cards.
+- If you cannot beat the highest card of the lead suit on the table, you must still follow suit by playing any lower card of that same lead suit.
+- If a card of the lead suit is played, and then someone else trumps it, you are still legally required to follow the original lead suit if you have it, even if your card cannot beat the trump.
+- If you are void of the lead suit, you must play a trump card and beat any trumps already played if possible.
+
+EXACT INPUT AND OUTPUT EXAMPLES TO FOLLOW:
+
+--- EXAMPLE 1: FOLLOWING AND WINNING THE LEAD SUIT (HEARTS - 6 CARDS IN HAND) ---
+Hand Data Input: {'HEARTS': ['A', '10', 'K'], 'SPADES': ['Q', 'J'], 'DIAMONDS': ['J'], 'CLUBS': []}
+Trump Suit: DIAMONDS
+Cards Played So Far: [('HEARTS', 'Q'), ('HEARTS', 'J')]
+Expected Output:
+('HEARTS', 'A')
+
+--- EXAMPLE 2: FOLLOWING AND LOSING ON LEAD SUIT (CLUBS - 5 CARDS IN HAND) ---
+Hand Data Input: {'CLUBS': ['Q', 'J'], 'HEARTS': ['A', '10'], 'DIAMONDS': [], 'SPADES': ['K']}
+Trump Suit: DIAMONDS
+Cards Played So Far: [('CLUBS', 'A'), ('CLUBS', '10')]
+Expected Output:
+('CLUBS', 'Q')
+
+--- EXAMPLE 3: FOLLOWING LEAD SUIT (DIAMONDS - 6 CARDS IN HAND) WHEN TRUMPED AHEAD ---
+Hand Data Input: {'DIAMONDS': ['K', '9'], 'HEARTS': ['A', 'Q'], 'SPADES': ['10'], 'CLUBS': ['J']}
+Trump Suit: SPADES
+Cards Played So Far: [('DIAMONDS', 'A'), ('SPADES', 'A')]
+Expected Output:
+('DIAMONDS', 'K')
+
+--- EXAMPLE 4: FOLLOWING LEAD SUIT (CLUBS - 5 CARDS IN HAND) AND WINNING WITH MULTIPLE HIGHER CARDS ---
+Hand Data Input: {'CLUBS': ['A', '10', '9'], 'HEARTS': ['K'], 'DIAMONDS': [], 'SPADES': ['Q']}
+Trump Suit: HEARTS
+Cards Played So Far: [('CLUBS', 'K'), ('CLUBS', 'J')]
+Expected Output:
+('CLUBS', 'A')
+
+--- EXAMPLE 5: FOLLOWING LEAD SUIT (HEARTS - 5 CARDS IN HAND) WITH DUPLICATE RANKS ---
+Hand Data Input: {'HEARTS': ['Q', 'Q'], 'SPADES': ['10', 'J'], 'DIAMONDS': ['A'], 'CLUBS': []}
+Trump Suit: DIAMONDS
+Cards Played So Far: [('HEARTS', 'A'), ('HEARTS', 'K')]
+Expected Output:
+('HEARTS', 'Q')
+
+--- EXAMPLE 6: FOLLOWING LEAD SUIT WHEN PREVIOUS PLAYER UNDERTRUMPED (MUST STILL BEAT THE LEAD SUIT) ---
+Hand Data Input: {'SPADES': ['10', 'K', 'J'], 'DIAMONDS': ['9'], 'HEARTS': ['A'], 'CLUBS': []}
+Trump Suit: HEARTS
+Cards Played So Far: [('SPADES', 'Q'), ('CLUBS', '9')]
+Expected Output:
+('SPADES', 'K')
+
+--- EXAMPLE 7: FOLLOWING LEAD SUIT WITH AN EXACT DUPLICATE OF THE WINNING CARD ---
+Hand Data Input: {'DIAMONDS': ['10', 'Q', '9'], 'SPADES': ['A', 'K'], 'HEARTS': [], 'CLUBS': ['J']}
+Trump Suit: HEARTS
+Cards Played So Far: [('DIAMONDS', '10'), ('DIAMONDS', 'J')]
+Expected Output:
+('DIAMONDS', '10')
+
+--- EXAMPLE 8: FOLLOWING LEAD SUIT AT THE START OF A TRICK (LEADING THE TRICK) ---
+Hand Data Input: {'CLUBS': ['A', '10', 'K', 'Q'], 'SPADES': ['A', '10'], 'DIAMONDS': ['J'], 'HEARTS': ['9']}
+Trump Suit: SPADES
+Cards Played So Far: []
+Expected Output:
+('CLUBS', 'A')
+
+--- EXAMPLE 9: VOID OF LEAD SUIT (DIAMONDS - 4 CARDS IN HAND - FORCED TO OVERTRUMP) ---
+Hand Data Input: {'CLUBS': [], 'HEARTS': ['A', 'K'], 'DIAMONDS': ['10'], 'SPADES': ['J']}
+Trump Suit: DIAMONDS
+Cards Played So Far: [('CLUBS', 'A'), ('CLUBS', '10'), ('DIAMONDS', '9')]
+Expected Output:
+('DIAMONDS', '10')
+
+--- EXAMPLE 10: VOID OF LEAD SUIT (CLUBS - 6 CARDS IN HAND - FIRST TO PLAY TRUMP) ---
+Hand Data Input: {'HEARTS': [], 'SPADES': ['J', '9'], 'CLUBS': ['J', '9'], 'DIAMONDS': ['A', '10']}
+Trump Suit: CLUBS
+Cards Played So Far: [('HEARTS', 'A'), ('HEARTS', '10')]
+Expected Output:
+('CLUBS', 'J')
+
+--- EXAMPLE 11: VOID OF LEAD SUIT AND TRUMP SUIT (SPADES - 8 CARDS IN HAND - FULL DECK START) ---
+Hand Data Input: {'DIAMONDS': [], 'HEARTS': ['K', 'Q', 'J'], 'SPADES': ['A', '10', 'K', '9'], 'CLUBS': ['9']}
+Trump Suit: CLUBS
+Cards Played So Far: [('DIAMONDS', 'A'), ('DIAMONDS', '10'), ('CLUBS', 'K')]
+Expected Output:
+('SPADES', 'A')
+
+--- EXAMPLE 12: ENDGAME LEAD SUIT MINIMUMS (SPADES - 2 CARDS IN HAND) ---
+Hand Data Input: {'SPADES': ['A'], 'DIAMONDS': ['9'], 'HEARTS': [], 'CLUBS': []}
+Trump Suit: HEARTS
+Cards Played So Far: [('SPADES', '10'), ('SPADES', 'Q'), ('SPADES', 'K')]
+Expected Output:
+('SPADES', 'A')
+
+--- EXAMPLE 13: ENDGAME SLUFF (CLUBS - 3 CARDS IN HAND) ---
+Hand Data Input: {'SPADES': [], 'DIAMONDS': [], 'HEARTS': [], 'CLUBS': ['A', '10', '9']}
+Trump Suit: SPADES
+Cards Played So Far: [('HEARTS', 'A'), ('HEARTS', '10'), ('SPADES', 'K')]
+Expected Output:
+('CLUBS', 'A')
+
+--- EXAMPLE 14: VOID OF LEAD SUIT (SPADES - 8 CARDS IN HAND - UNDERTRUMPING FORCED) ---
+Hand Data Input: {'DIAMONDS': [], 'HEARTS': [], 'SPADES': ['10', '9', '9'], 'CLUBS': ['K', 'Q', 'J', '9', '9']}
+Trump Suit: CLUBS
+Cards Played So Far: [('DIAMONDS', 'A'), ('CLUBS', 'A'), ('CLUBS', '10')]
+Expected Output:
+('CLUBS', 'K')
+
+--- YOUR TARGET TASK ---
+Evaluate the live game data below. Determine your legal card to play. 
+Output your final answer as a raw card tuple now. Do not talk. Do not analyze. Do not use code blocks.
