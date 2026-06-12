@@ -18,13 +18,6 @@ class Ollama_Opponent(Opponent):
 
     def _parse_card(self, card_str: str) -> Tuple[str, str]:
         return checks.parse_card(card_str)
-
-    def _valid_trick_format(self, trick):
-        try:
-            self._parse_card(trick)
-            return True
-        except ValueError:
-            return False
         
     def _message_and_response(self, new_message_content):
         new_message = {'role':'user', 'content':new_message_content}

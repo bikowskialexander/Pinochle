@@ -27,3 +27,6 @@ Pinochle melds are formed using specific card combinations from a player's hand 
 - Royal Marriage: Requires the K and Q of the declared trump suit.
 - Marriage: Requires a K and Q of the same non-trump suit.
 - nine of trumps: The 9 of the declared trump suit, which is the lowest trump card.
+
+
+CRITICAL: If an output is not accepted, you will be prompted again with a message informing you of the failure. Do not repeat the first output.

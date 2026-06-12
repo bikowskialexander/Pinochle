@@ -65,7 +65,7 @@ LLAMA_3_2 = "llama3.2:latest"
 GEMMA4_E2B = "gemma4:e2b"
 
 # Used model 
-DEFAULT_MODEL = QWEN_3_5_4B
+DEFAULT_MODEL = GPTOSS
 
 
 # ========================================
@@ -73,6 +73,6 @@ DEFAULT_MODEL = QWEN_3_5_4B
 # ========================================
 
 PASS_FAILURE_MESSAGE = "The last output given was not accepted. Please Try Again."
-TRICK_FAILURE_MESSAGE = PASS_FAILURE_MESSAGE + " \nCRITICAL: Do not give the same output"
+TRICK_FAILURE_MESSAGE = PASS_FAILURE_MESSAGE + " \nCRITICAL: Do **NOT** give the same output. Here is the last output: " 
 
 

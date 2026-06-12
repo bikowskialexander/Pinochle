@@ -416,18 +416,26 @@ def parse_card(card_str: str) -> Tuple[str, str]:
     suit, rank = match.group(1), match.group(2)
     return suit, rank
 
+def valid_trick_format(trick):
+    try:
+        parse_card(trick)
+        return True
+    except ValueError:
+        return False
+
 def check_trick(played, hand, card : str, trumps):
     """
     Main entry point for verifying if playing 'card' is legal.
     """
     try:
         card = str(card)
-        card = parse_card(card)
-        if len(played) == 0:
-            return check_trick_first(hand, card)
-        else:
-            # Fixed parameter pass sequence to match check_tricks_after_first
-            return check_tricks_after_first(card, hand, played, trumps)
+        if valid_trick_format(card):
+            card = parse_card(card)
+            if len(played) == 0:
+                return check_trick_first(hand, card)
+            else:
+                # Fixed parameter pass sequence to match check_tricks_after_first
+                return check_tricks_after_first(card, hand, played, trumps)
     except:
         return False
 

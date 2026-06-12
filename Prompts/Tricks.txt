@@ -7,6 +7,7 @@ CRITICAL: Any conversational text, explanation, intro, or outro text outside of 
 Rules Reminders:
 - You must follow the lead suit if you are able to.
 - If you can follow the lead suit, you must beat the highest card of that suit on the table if possible.
+- If you have multiple cards of the lead suit that can beat the current highest card on the table, you may choose to play any of those winning cards.
 - If you cannot beat the highest card of the lead suit on the table, you must still follow suit by playing any lower card of that same lead suit.
 - If a card of the lead suit is played, and then someone else trumps it, you are still legally required to follow the original lead suit if you have it, even if your card cannot beat the trump.
 - If you are void of the lead suit, you must play a trump card and beat any trumps already played if possible.
@@ -48,42 +49,63 @@ Cards Played So Far: [('HEARTS', 'A'), ('HEARTS', 'K')]
 Expected Output:
 ('HEARTS', 'Q')
 
---- EXAMPLE 6: VOID OF LEAD SUIT (DIAMONDS - 4 CARDS IN HAND - FORCED TO OVERTRUMP) ---
+--- EXAMPLE 6: FOLLOWING LEAD SUIT WHEN PREVIOUS PLAYER UNDERTRUMPED (MUST STILL BEAT THE LEAD SUIT) ---
+Hand Data Input: {'SPADES': ['10', 'K', 'J'], 'DIAMONDS': ['9'], 'HEARTS': ['A'], 'CLUBS': []}
+Trump Suit: HEARTS
+Cards Played So Far: [('SPADES', 'Q'), ('CLUBS', '9')]
+Expected Output:
+('SPADES', 'K')
+
+--- EXAMPLE 7: FOLLOWING LEAD SUIT WITH AN EXACT DUPLICATE OF THE WINNING CARD ---
+Hand Data Input: {'DIAMONDS': ['10', 'Q', '9'], 'SPADES': ['A', 'K'], 'HEARTS': [], 'CLUBS': ['J']}
+Trump Suit: HEARTS
+Cards Played So Far: [('DIAMONDS', '10'), ('DIAMONDS', 'J')]
+Expected Output:
+('DIAMONDS', '10')
+
+--- EXAMPLE 8: FOLLOWING LEAD SUIT AT THE START OF A TRICK (LEADING THE TRICK) ---
+Hand Data Input: {'CLUBS': ['A', '10', 'K', 'Q'], 'SPADES': ['A', '10'], 'DIAMONDS': ['J'], 'HEARTS': ['9']}
+Trump Suit: SPADES
+Cards Played So Far: []
+Expected Output:
+('CLUBS', 'A')
+
+--- EXAMPLE 9: VOID OF LEAD SUIT (DIAMONDS - 4 CARDS IN HAND - FORCED TO OVERTRUMP) ---
 Hand Data Input: {'CLUBS': [], 'HEARTS': ['A', 'K'], 'DIAMONDS': ['10'], 'SPADES': ['J']}
 Trump Suit: DIAMONDS
 Cards Played So Far: [('CLUBS', 'A'), ('CLUBS', '10'), ('DIAMONDS', '9')]
 Expected Output:
 ('DIAMONDS', '10')
 
---- EXAMPLE 7: VOID OF LEAD SUIT (CLUBS - 6 CARDS IN HAND - FIRST TO PLAY TRUMP) ---
+--- EXAMPLE 10: VOID OF LEAD SUIT (CLUBS - 6 CARDS IN HAND - FIRST TO PLAY TRUMP) ---
 Hand Data Input: {'HEARTS': [], 'SPADES': ['J', '9'], 'CLUBS': ['J', '9'], 'DIAMONDS': ['A', '10']}
 Trump Suit: CLUBS
 Cards Played So Far: [('HEARTS', 'A'), ('HEARTS', '10')]
 Expected Output:
 ('CLUBS', 'J')
 
---- EXAMPLE 8: VOID OF LEAD SUIT AND TRUMP SUIT (SPADES - 8 CARDS IN HAND - FULL DECK START) ---
+--- EXAMPLE 11: VOID OF LEAD SUIT AND TRUMP SUIT (SPADES - 8 CARDS IN HAND - FULL DECK START) ---
 Hand Data Input: {'DIAMONDS': [], 'HEARTS': ['K', 'Q', 'J'], 'SPADES': ['A', '10', 'K', '9'], 'CLUBS': ['9']}
 Trump Suit: CLUBS
 Cards Played So Far: [('DIAMONDS', 'A'), ('DIAMONDS', '10'), ('CLUBS', 'K')]
 Expected Output:
 ('SPADES', 'A')
 
---- EXAMPLE 9: ENDGAME LEAD SUIT MINIMUMS (SPADES - 2 CARDS IN HAND) ---
+--- EXAMPLE 12: ENDGAME LEAD SUIT MINIMUMS (SPADES - 2 CARDS IN HAND) ---
 Hand Data Input: {'SPADES': ['A'], 'DIAMONDS': ['9'], 'HEARTS': [], 'CLUBS': []}
 Trump Suit: HEARTS
 Cards Played So Far: [('SPADES', '10'), ('SPADES', 'Q'), ('SPADES', 'K')]
 Expected Output:
 ('SPADES', 'A')
 
---- EXAMPLE 10: ENDGAME SLUFF (CLUBS - 3 CARDS IN HAND) ---
+--- EXAMPLE 13: ENDGAME SLUFF (CLUBS - 3 CARDS IN HAND) ---
 Hand Data Input: {'SPADES': [], 'DIAMONDS': [], 'HEARTS': [], 'CLUBS': ['A', '10', '9']}
 Trump Suit: SPADES
 Cards Played So Far: [('HEARTS', 'A'), ('HEARTS', '10'), ('SPADES', 'K')]
 Expected Output:
 ('CLUBS', 'A')
 
---- EXAMPLE 11: VOID OF LEAD SUIT (SPADES - 8 CARDS IN HAND - UNDERTRUMPING FORCED) ---
+--- EXAMPLE 14: VOID OF LEAD SUIT (SPADES - 8 CARDS IN HAND - UNDERTRUMPING FORCED) ---
 Hand Data Input: {'DIAMONDS': [], 'HEARTS': [], 'SPADES': ['10', '9', '9'], 'CLUBS': ['K', 'Q', 'J', '9', '9']}
 Trump Suit: CLUBS
 Cards Played So Far: [('DIAMONDS', 'A'), ('CLUBS', 'A'), ('CLUBS', '10')]

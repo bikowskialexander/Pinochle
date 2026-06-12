@@ -75,7 +75,6 @@ class Pinochle:
             self.stage = "MELD"
         elif self.stage == "MELD":
             self.do_meld()
-            self.clear_messages()
             self.stage = "TRICKS"
         elif self.stage == "TRICKS":
             self.do_tricks()
@@ -225,7 +224,7 @@ class Pinochle:
             attempts = 1
             print(trick)
             while attempts < ATTEMPTS_TILL_FAILURE and not checks.check_trick(self.played, self.hands[i], trick, self.trumps):
-                trick = self.players[i].get_tricks(self.hands[i], self.trumps, self.played, TRICK_FAILURE_MESSAGE) 
+                trick = self.players[i].get_tricks(self.hands[i], self.trumps, self.played, TRICK_FAILURE_MESSAGE + trick) 
                 print(trick)
                 self._add_to_logs(trick)
                 attempts += 1
