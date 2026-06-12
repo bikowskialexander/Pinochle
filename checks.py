@@ -279,7 +279,6 @@ def check_four_of_a_kind_meld(cards : list, kind):
 # ---------------------------------------------------
 #                   For Tricks
 # ---------------------------------------------------
-
 def check_trick_first(hand, card):
     """
     Validates the first card led in a trick.
@@ -287,11 +286,10 @@ def check_trick_first(hand, card):
     """
     try:
         # card format: (SUIT, value)
-        suit = card[0].lower()
+        suit = card[0].upper() # Enforce uppercase for hand key lookups
         rank = card[1]
         
-        # Verify if the card actually exists in the hand structure
-        if rank in hand[suit.upper()]:
+        if suit in hand and rank in hand[suit]:
             return True
         return False
     except (IndexError, AttributeError, TypeError):
@@ -308,40 +306,42 @@ def check_tricks_after_first(card, hand, played, trumps):
         if not check_trick_first(hand, card):
             return False
         
-        card_suit = card[0].lower()
+        # Keep string comparisons normalized to lowercase, 
+        # but map dictionary keys strictly to uppercase.
+        card_suit_lower = card[0].lower()
         card_val = card[1]
         trumps_lower = trumps.lower()
         
         # 2. Extract Lead Suit data from the first played card
-        lead_suit = played[0][0].lower()
+        lead_suit_lower = played[0][0].lower()
         max_value_of_suit = CARDS.index(played[0][1])
         
         # Find highest matching lead-suit card on the table
         for p in played[1:]:
-            if p[0].lower() == lead_suit:
+            if p[0].lower() == lead_suit_lower:
                 index = CARDS.index(p[1])
                 if index > max_value_of_suit:
                     max_value_of_suit = index
 
         # --- CASE A: Player is following the Lead Suit ---
-        if card_suit == lead_suit:
+        if card_suit_lower == lead_suit_lower:
             card_index = CARDS.index(card_val)
             if card_index > max_value_of_suit:
                 return True
             else:
-                # If they didn't beat it, ensure they don't hold a card that could have beaten it
-                for c in hand[lead_suit]:
+                # Fixed: Access hand using uppercase key
+                for c in hand.get(lead_suit_lower.upper(), []):
                     if CARDS.index(c) > max_value_of_suit:
                         return False  # Forced to win if capable
                 return True
 
         # --- CASE B: Player is shedding or trumping (Different Suit) ---
         else:
-            # Illegal to play a different suit if you hold any cards of the lead suit
-            if len(hand.get(lead_suit, [])) == 0:
+            # Fixed: Access hand using uppercase key to check if truly void
+            if len(hand.get(lead_suit_lower.upper(), [])) == 0:
                 
                 # Subcase B1: Player plays a Trump Card
-                if card_suit == trumps_lower:
+                if card_suit_lower == trumps_lower:
                     max_trump_index = None
                     for p in played:
                         if p[0].lower() == trumps_lower:
@@ -357,16 +357,16 @@ def check_tricks_after_first(card, hand, played, trumps):
                     if card_index > max_trump_index:
                         return True
                     else:
-                        # Player must play a higher trump if they possess one
-                        for c in hand.get(trumps_lower, []):
+                        # Fixed: Access hand using uppercase key
+                        for c in hand.get(trumps_lower.upper(), []):
                             if CARDS.index(c) > max_trump_index:
                                 return False
                         return True  
                 
                 # Subcase B2: Player sluffs a regular off-suit card
                 else:
-                    # Only legal if they have absolutely no trumps left in hand
-                    if len(hand.get(trumps_lower, [])) == 0:
+                    # Fixed: Access hand using uppercase key
+                    if len(hand.get(trumps_lower.upper(), [])) == 0:
                         return True
                     else:
                         return False

@@ -50,7 +50,7 @@ class Pinochle:
         for i in range(4):
             system_prompt = self.players[i].messages[0]
             self.players[i].messages.clear()
-            self.players[i].append(system_prompt)
+            self.players[i].messages.append(system_prompt)
 
     def step(self) -> dict:
         if self.game_over() != -1:
@@ -193,7 +193,7 @@ class Pinochle:
             attempts = 1
             while attempts < ATTEMPTS_TILL_FAILURE and not checks.check_meld_valid(self.hands[i], str(meld), self.trumps):
                 meld = self.players[0].get_meld(self.hands[i], self.trumps).strip()
-                self._add_to_logs(meld)
+                self._add_to_logs(meld, i)
                 attempts += 1
             if attempts >= ATTEMPTS_TILL_FAILURE:
                 if i == 0 or i == 2:
@@ -217,13 +217,16 @@ class Pinochle:
     def do_tricks(self):
         self.move_index = self.bid_taker_index
         self.define_order()
+        print(self.order)
         self.played = []
         for i in self.order:
             trick = self.players[i].get_tricks(self.hands[i], self.trumps, self.played) 
             self._add_to_logs(trick)
             attempts = 1
+            print(trick)
             while attempts < ATTEMPTS_TILL_FAILURE and not checks.check_trick(self.played, self.hands[i], trick, self.trumps):
-                trick = self.players[i].get_tricks(self.hands[i], self.trumps, self.played) 
+                trick = self.players[i].get_tricks(self.hands[i], self.trumps, self.played, TRICK_FAILURE_MESSAGE) 
+                print(trick)
                 self._add_to_logs(trick)
                 attempts += 1
             if attempts >= ATTEMPTS_TILL_FAILURE:

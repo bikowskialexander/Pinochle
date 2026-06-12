@@ -130,31 +130,18 @@ class Ollama_Opponent(Opponent):
 
     def get_tricks(self, hand, trumps, played, additional_message="") -> str:
         # Enforce strict uppercase system formatting instructions
-        new_message_content = (
-            "You are playing Pinochle and are in the trick-taking phase.\n"
-            "Your output must be strictly limited to a single valid Python tuple in the format: ('SUIT', 'rank').\n"
-            "Example valid outputs: ('HEARTS', 'A') or ('SPADES', '10').\n"
-            "Do not include any introductory commentary, thinking text, or surrounding markdown code blocks.\n\n"
-        )
-        
+        file = open("Prompts/Tricks.txt")
+        new_message_content = file.read()
+        file.close()
+
         # Inject game state context
-        new_message_content += f"The trump suit for this hand is: {str(trumps).upper()}\n"
+        if additional_message != "":
+            new_message_content += f"ATTENTION (PREVIOUS ATTEMPT FAILED):\n{additional_message}\n\n"
+        new_message_content += f"\n\nThe trump suit for this hand is: {str(trumps).upper()}\n"
         new_message_content += f"Your current hand is: {str(hand)}\n"
         new_message_content += f"The cards played so far this trick (in order) are: {str(played)}\n\n"
         
-        # Strategy rules reminder to optimize AI decision boundaries
-        new_message_content += (
-            "Rules Reminders:\n"
-            "- You must follow the lead suit if you are able to.\n"
-            "- If you can follow the lead suit, you must beat the highest card of that suit on the table if possible.\n"
-            "- If you are void of the lead suit, you must play a trump card and beat any trumps already played if possible.\n\n"
-            "CRITICAL: Output EXACTLY ONE card tuple and nothing else."
-            "- Only the card to be played should be output."
-        ) 
         new_message = {'role':'user', 'content':new_message_content}
         self.messages.append(new_message)
-        response = chat(model=self.model, messages=self.messages)['message']['content']
-        while not self._valid_trick_format(response):
-            response = chat(model=self.model, messages=self.messages)['message']['content']
         return self._message_and_response(new_message_content)
 

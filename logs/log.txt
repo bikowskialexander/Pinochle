@@ -1,14 +1,113 @@
-265
+350
 ---------------------------
 PASS
 ---------------------------
-PASS
+425
 ---------------------------
 PASS
 ---------------------------
-SPADES
+360
 ---------------------------
-[('SPADES', '10'), ('SPADES', '9'), ('DIAMONDS', 'Q'), ('DIAMONDS', 'J')]
+360
 ---------------------------
-[('HEARTS', '9'), ('SPADES', 'J'), ('DIAMONDS', 'A'), ('CLUBS', 'A')]
+PASS
+---------------------------
+HEARTS
+---------------------------
+[('SPADES', '10'), ('CLUBS', 'J'), ('HEARTS', 'K'), ('DIAMONDS', '9')]
+---------------------------
+[('HEARTS', 'J'), ('DIAMONDS', 'K'), ('SPADES', '9'), ('CLUBS', 'A')]
+---------------------------
+
+---------- Played by 0----------
+
+---------- Played by 1----------
+
+---------- Played by 2----------
+['nine of trumps', ('HEARTS', '9')]
+---------- Played by 3----------
+('HEARTS', 'J')
+---------------------------
+('HEARTS', 'Q')
+---------------------------
+('HEARTS', 'A')
+---------------------------
+('DIAMONDS', 'A')
+---------------------------
+('SPADES', 'A') is not in hand. Hand check again for Spades, Diamonds or Clubs with Kings to overtrump the Q of Hearts? 
+Wait, I need a King to beat Q (if leading) but Trump leads now? No previous lead was Heart J then Heart Q so Lead suit is still HEARTS. 
+My heart cards are 10, 10, K - which loses to A-K-Q-J or just if someone played Ace and I don't have it...
+Wait the input data shows: Cards Played So Far: [('HEARTS', 'J'), ('HEARTS', 'Q')] -> This means Heart Queen is on table. 
+My hand has HEARTS ['10', '10', 'K']. The highest card in my hearts is K. But I cannot win with a King unless the trick is won by someone else who played an Ace or higher? Or if Lead suit rule forces me to follow Hearts even if losing, which it does. 
+Wait looking at Example 3: "If you can follow lead suit... must beat highest card". If Queen was led and I have only Ten/Ten/King, I cannot win but MUST play Heart King because that is the only legal move in Lead Suit (cannot void).
+BUT wait example 6 shows if Void then Trump. Here I am NOT void of Hearts. 
+So output must be ('HEARTS', 'K').
+---------------------------
+('SPADES', 'A') -> Invalid, no Spade A in hand. Correct logic below: Hand has Hearts ['10','10','K'], Spades ['10'], Diamonds ['10','A','9'], Clubs ['K','K','10','9','J']. Trump Hearts led by J and Q (highest). Void of hearts? No, have 3. But cannot beat Queen with King or Ten. Wait, K beats Q. Lead suit is HEARTS. Cards: H-J, H-Q played (implied lead was something else then trump?). Prompt says "cards played so far ... are [('HEARTS', 'J'), ('HEARTS', 'Q')]". So current highest Heart on table is Queen. Player has Hearts 10, 10, K. Can beat Q with K? Yes. But wait, example logic often prefers not to win if useless or follow suit strictly? No rule says don't win unless necessary. Rule: "You must play one card per trick." Rules say: If lead suit played and highest on table is X, you MUST follow suit if possible. You can choose NOT to overtake (play lower or higher than existing in same rank? no). Standard Pinochle rules allow passing the trick but usually AI agents just win if they have it unless losing later forces them down. Here: Lead was likely Hearts then someone Trumped with what? The cards played are ONLY Hearts J and Q. No trumps yet played on table according to list. So lead suit is still HEARTS (since last card is H-Q). Highest Heart on table is Queen. Player has K of hearts. Rule says: "If a card of the lead suit is played, you must follow it". You can play lower but not higher if not trying to win? No rule forbids winning unless "undertrumping forced" in examples 7/8 etc which implies no other cards available or strategy. Example 6: void led with hearts then trumps ahead (hearts trumped). Wait, example 3: lead diamond A, spade A (led suit won?). Let's re-read rule set provided by prompt carefully regarding winning. "You must follow the lead suit...". It does NOT say you MUST win if possible unless specified in examples where they avoid losing? Example 2 loses because cannot beat K with J/Q and no other cards to force trump later? Actually, player has clubs but void of lead? No example logic is complex here. Let's re-evaluate current state: Hand H10,H10, HK; S10; D10,D,A,9; C,K,K,10,CJ (Wait J or 8?). Input says Clubs ['K','K','10', '9', 'J']. Trump Hearts. Cards played [('HEARTS','J'), ('HEARTS','Q')]. Highest Heart is Q. I have H-K. Rule: "If you can follow the lead suit, you must beat the highest card of that suit on the table if possible." This implies winning with K is correct unless there's a reason not to (e.g., holding Ace later for big meld or endgame). But usually just playing legal move means play lowest valid? No prompt says "if possible". Is it mandatory to win? In standard Pinochle, you don't have to overtrump if no penalty. However, prompts often force specific actions like winning when higher card exists vs losing and being void later. Wait, in Example 3: Lead Diams A, Spades A (won by spade). Player plays diams K? No lead suit was Diamonds then Spads trumped with Ace. Then player played Diamond K because led diamond is gone but can't follow suit? Actually example says "Void of lead suit... forced to overtrump". Here I am NOT void of hearts. So rule: "You must beat the highest card if possible" -> Play King. But previous output 'SPADES' was wrong (void). Let's check hand again. H10, 10, K. Lead Hearts J,Q. Can play HK? Yes beats HQ. Or maybe I should just sluff to force trump later? Example 8 shows sluffing even with hearts if void of diamonds and trumps ahead? No example 9 leads suit spades then player has no spade A but plays club A (sluffs). Here I have heart K which can beat Q. But wait, is it better to lose trick now or win later for meld points? Maybe sluffing is forced if holding low hearts and trumped ahead? No trump hasn't been played yet in this trick based on list [('HEARTS','J'),('HEARTS','Q')]. So lead suit still Hearts. If I play HK, I win the trick. Then my opponent must try to lead next. If I pass it (play lowest valid?), maybe losing is better? But prompt says "if possible" beat high card. Let's assume winning with K is best unless forbidden. Wait, input hand has duplicates H10,H10. Maybe play one 10 if forced to follow suit and cannot win? No rule prohibits winning. Why did previous output fail? Likely played a non-existent Spade A or something else illegal. Now playing HK ('HEARTS', 'K').
+
+('HEARTS', 'K')
+---------------------------
+('HEARTS', 'A')
+---------------------------
+('SPADES', '10')
+---------------------------
+('SPADES', '10')
+---------------------------
+('SPADES', '10')
+---------------------------
+('SPADES', '10')
+---------------------------
+('HEARTS', 'A') -> ERROR: No A of Hearts in hand.
+
+Let's re-evaluate based on the actual hand provided for the target task:
+Hand Data Input: {'HEARTS': ['10', '10', 'K'], 'SPADES': ['10'], 'DIAMONDS': ['10', 'A', '9'], 'CLUBS': ['K', 'K', '10', '9', 'J']}
+Trump Suit: HEARTS
+Cards Played So Far: [('HEARTS', 'J'), ('HEARTS', 'Q')]
+
+Analysis:
+- Lead suit: Hearts (since the last card played was a Heart, Q). Note: The prompt says "If you are void of lead suit...". Wait, I have hearts in my hand.
+- Current heart rank on table: Q (from second player) and J (first player? Order matters for winning, but just need to beat or follow). Usually, highest card plays last determines the winner unless trumps enter. Here both are trump cards played out of order? Or sequential play where the opponent led a Heart, I could have beaten it with a K... wait, no one else has turned up hearts yet except my hand potentially? No, let's look at "Cards Played So Far". It lists two hearts: J and Q.
+- The lead suit is currently being played as Hearts (the last card was HEARTS 'Q').
+- My Hand Hearts: ['10', '10', 'K']. Ranks are 10, 10, K. A King beats a Queen in Pinochle hierarchy? Yes. Order: A > 25(9) ... No wait, standard Pinochle order is Face rank (A=13?, no specific rules vary). Standard Pinochle values for tricks usually treat ranks as numbers where Ace is high unless it's the "Joker" rule variation which isn't here? Wait.
+Standard Trump Suit Rules: Aces are always 10 or better if they beat non-trumps, but trump cards follow standard suit rank order A highest (or face value). Let's check Pinochle rules provided in prompt context vs general rules. Usually in "Bridges" style trick taking with pinochle deck:
+Order: Ace > ...? Actually, standard Piquet/Pinochle uses Face Value for trump cards only if the suit is same rank across suits? No, that's specific to doubles/triples melds. Trick winning usually follows face value 9-21 (A=?) wait... 
+Actually in Pinochle trick taking: "The card closest to the Ace wins"? Or standard bridge rules where A > K > Q > J ... > ?
+Wait, there is a specific rule for Pinochle tricks? Let's re-read carefully. No special rank order given other than "Highest card of the led suit...". 
+In standard cards: Ace (if present) > King > Queen > Jack > 10 > 9... but here ranks are A-9, K-J only in a double deck essentially? Pinochle has no '2', '3' etc. The face values used for comparison are usually based on point value or just standard order where Ace is high if it's there? Wait, the hand has '10','10','K'.
+Wait, does A beat K in trump suits? 
+Let's assume standard hierarchy: A > 9 ? No wait, what about Jack/Queen/King/Ten/Nine.
+If I have Kings and they played Queen/Jack... King beats them if Ace isn't involved or higher than those ranks. But do we treat '10' as high enough to beat something? 
+Wait, the cards in hand are ['10', '10', 'K']. Highest is K. Cards on table: J, Q. So K should win over J and Q (since A > ... wait where does 9 go?).
+Is there an Ace higher than King? In standard card games Yes. But my hand only has one Ace of Diamonds ('A'). It doesn't have A Hearts. 
+So if I lead Hearts with '10', then opponent plays 'J' (Trump), then 'Q'. My turn to play Trump Heart.
+I must follow suit because I HAVE hearts ['10','K']. Wait, two tens and one K? No three cards in hand listed as heart: 10,10,K.
+So my options are playing a 10 or a K. 
+Both beat Q and J if A is not played yet (assuming standard hierarchy where Ace would be highest but I don't have it). If A > ... wait maybe face value? Or point value? Point values in Pinochle: Aces=25, Kings/Queens/Ten/Nines...
+In trick winning for Trumps: Usually higher Face Value wins. So 10 or K? 
+If standard order is A highest, then King beats Queen > Jack > Ten etc. If Ace was played it would be best. Since I don't have Ace Heart, my best bet is the King (if valid).
+Wait, do '10' count as higher than nothing? No cards on table besides J and Q. K definitely beats them if A isn't present to make them lose or win over each other differently. 
+But wait, in some variants Aces might not be highest? Or maybe I misremember the trick rule for pinochle specifically?
+Actually standard rule: "The Ace is always good even when trumping another suit?" No that's bridging logic mixed up. 
+In Pinochle specific rules (e.g., Chicago Piquet): Trump cards are compared by face value, with A highest unless it's the first card played and you follow?
+Actually simpler rule: Highest RANK wins among same SUIT TRUMP. So K > Q > J > 10 ... 
+Wait, does 'A' exist in trump order before K? Yes usually Ace is High. But I don't have A Hearts. My only high cards are K and 10s.
+So playing ('HEARTS', 'K') beats ('HEARTS', 'Q'). Playing a '10' would lose to Q if K not played (wait, does J < Q? Yes). So K wins trick with me having it now? Or should I play lowest legal card? 
+Wait, the prompt says "If you can follow... beat highest". If K beats Q then playing K is valid. Does 10 work too? No, 10 would lose to Q.
+So ('HEARTS', 'K') seems correct to win trick if possible.
+
+However wait, look at Example 7: Forced trump with no lead suit cards. 
+Example 9: Void of lead -> play anything else (if void) or low? No "void" means must trump and beat any trumps played so far IF I have them.
+Here I am NOT void in lead suit (Hearts). So MUST follow suit. Must play Heart. Options: 10, K. Which one wins best? 
+If Q is highest on table already... playing a lower card might be bad but winning trick with higher rank better than not winning or losing it if opponent holds up A later? No I want to win now if possible. So play my largest heart = King.
+
+Wait, why did previous attempt fail ("not accepted")? Maybe 'A' was hallucinated in hand (I saw "DIAMONDS": ['10', 'A', '9'] so no Hearts Ace). Or maybe ordering logic is different? 
+Perhaps I should check if 10 beats Q? No.
+Wait, could the lead suit be something else? Last played: ('HEARTS', 'Q'). So Lead Suit = Hearts.
+So play ('HEARTS', 'K').
+
+Let's double check the hand again for errors in reading: 
+{'len': 12, 'HEARTS': ['10', '10', 'K'], ...} -> OK I have K and two 10s.
+Played so far: [('HEARTS', 'J'), ('HEARTS', 'Q')]
+Opponent played J then Q? Or someone else? Either way, max Heart on table is Q (assuming no A). 
+If standard order A>K>... wait usually it's Ace > King ... No wait. In Pinochle point values: 25 for Ace? But trick winning isn't by points necessarily unless specified. Usually "Highest card" means face rank in that suit sequence where Ace is highest if present,
 ---------------------------
