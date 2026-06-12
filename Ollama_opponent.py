@@ -29,7 +29,7 @@ class Ollama_Opponent(Opponent):
     def _message_and_response(self, new_message_content):
         new_message = {'role':'user', 'content':new_message_content}
         self.messages.append(new_message)
-        response = chat(model=self.model, messages=self.messages)['message']['content']
+        response = chat(model=self.model, messages=self.messages, think=False)['message']['content']
         structured_response = {'role':'assistant', 'content':response}
         self.messages.append(structured_response)
         return response.strip()
@@ -47,7 +47,7 @@ class Ollama_Opponent(Opponent):
             "- Do not include any commentary, analysis, reasoning, or punctuation.\n\n"
             "BIDDING RULES:\n"
             f"- The current highest bid on the table is: {current}\n"
-            f"- If you choose to bid, your number must be at least ten higher"
+            f"- If you choose to bid, your number must be at least ten higher than the current highest"
             "EXAMPLES ALLOWED FOR current=250:\n"
             "PASS\n"
             f"260\n\n"
@@ -149,6 +149,7 @@ class Ollama_Opponent(Opponent):
             "- If you can follow the lead suit, you must beat the highest card of that suit on the table if possible.\n"
             "- If you are void of the lead suit, you must play a trump card and beat any trumps already played if possible.\n\n"
             "CRITICAL: Output EXACTLY ONE card tuple and nothing else."
+            "- Only the card to be played should be output."
         ) 
         new_message = {'role':'user', 'content':new_message_content}
         self.messages.append(new_message)

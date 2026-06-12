@@ -16,6 +16,7 @@ CARDS = ['9', 'J', 'Q', 'K', '10', 'A']
 # How many times a model is given to give the correct answer before game over
 ATTEMPTS_TILL_FAILURE = 10
 
+
 # ========================================
 #              Meld
 # ========================================
@@ -61,9 +62,10 @@ GPTOSS = "gpt-oss:latest"
 NEMOTRON_MINI_4B = "nemotron-mini:4b"
 COGITO = "cogito:latest"
 LLAMA_3_2 = "llama3.2:latest"
+GEMMA4_E2B = "gemma4:e2b"
 
 # Used model 
-DEFAULT_MODEL = GRANITE4_1_3B
+DEFAULT_MODEL = QWEN_3_5_9B
 
 
 # ========================================

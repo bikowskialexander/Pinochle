@@ -17,54 +17,45 @@ Hand Data Input:
 {'spades': ['A', 'K'], 'diamonds': ['A', 'Q'], 'hearts': ['A', 'J'], 'clubs': ['A', '10', '9']}
 Trump Suit: SPADES
 Expected Output:
-[
-  ["Aces Around", ('SPADES', 'A'), ('DIAMONDS', 'A'), ('HEARTS', 'A'), ('CLUBS', 'A')]
-]
+  ["Aces", ('SPADES', 'A'), ('DIAMONDS', 'A'), ('HEARTS', 'A'), ('CLUBS', 'A')]
 
 --- EXAMPLE 2: KINGS AROUND ---
 Hand Data Input:
 {'spades': ['K', 'Q'], 'diamonds': ['K', 'J'], 'hearts': ['K', '9'], 'clubs': ['K', '10']}
 Trump Suit: HEARTS
 Expected Output:
-[
-  ["Kings Around", ('SPADES', 'K'), ('DIAMONDS', 'K'), ('HEARTS', 'K'), ('CLUBS', 'K')]
-]
+  ["Kings", ('SPADES', 'K'), ('DIAMONDS', 'K'), ('HEARTS', 'K'), ('CLUBS', 'K')]
 
 --- EXAMPLE 3: QUEENS AROUND ---
 Hand Data Input:
 {'spades': ['Q', 'J'], 'diamonds': ['Q', '9'], 'hearts': ['Q', 'A'], 'clubs': ['Q', '10']}
 Trump Suit: CLUBS
 Expected Output:
-[
-  ["Queens Around", ('SPADES', 'Q'), ('DIAMONDS', 'Q'), ('HEARTS', 'Q'), ('CLUBS', 'Q')]
-]
+["Queens", ('SPADES', 'Q'), ('DIAMONDS', 'Q'), ('HEARTS', 'Q'), ('CLUBS', 'Q')]
 
 --- EXAMPLE 4: JACKS AROUND ---
 Hand Data Input:
 {'spades': ['J', '10'], 'diamonds': ['J', '9'], 'hearts': ['J', 'A'], 'clubs': ['J', 'K']}
 Trump Suit: DIAMONDS
 Expected Output:
-[
-  ["Jacks Around", ('SPADES', 'J'), ('DIAMONDS', 'J'), ('HEARTS', 'J'), ('CLUBS', 'J')]
-]
+["Jacks", ('SPADES', 'J'), ('DIAMONDS', 'J'), ('HEARTS', 'J'), ('CLUBS', 'J')]
 
 --- EXAMPLE 5: TRUMP RUN ---
 Hand Data Input:
 {'spades': ['A', '10', 'K', 'Q', 'J'], 'diamonds': ['9'], 'hearts': ['10'], 'clubs': ['K']}
 Trump Suit: SPADES
 Expected Output:
-[
-  ["Run", ('SPADES', 'A'), ('SPADES', '10'), ('SPADES', 'K'), ('SPADES', 'Q'), ('SPADES', 'J')]
-]
+["Run", ('SPADES', 'A'), ('SPADES', '10'), ('SPADES', 'K'), ('SPADES', 'Q'), ('SPADES', 'J')]
+
+CRITICAL: All cards must be present when outputting the run 
 
 --- EXAMPLE 6: ROYAL MARRIAGE ---
 Hand Data Input:
 {'spades': ['K', 'Q', '9'], 'diamonds': ['A'], 'hearts': ['J'], 'clubs': ['10']}
 Trump Suit: SPADES
 Expected Output:
-[
-  ["Royal Marriage", ('SPADES', 'K'), ('SPADES', 'Q')]
-]
+["Royal Marriage", ('SPADES', 'K'), ('SPADES', 'Q')]
+
 CRITICAL NOTICE: The trump suit must be used
 
 --- EXAMPLE 7: MARRIAGE ---
@@ -72,47 +63,37 @@ Hand Data Input:
 {'spades': ['10'], 'diamonds': ['K', 'Q'], 'hearts': ['9'], 'clubs': ['A']}
 Trump Suit: SPADES
 Expected Output:
-[
-  ["Marriage", ('DIAMONDS', 'K'), ('DIAMONDS', 'Q')]
-]
+["Marriage", ('DIAMONDS', 'K'), ('DIAMONDS', 'Q')]
 
---- EXAMPLE 8: DIX ---
+--- EXAMPLE 8: nine of trumps ---
 Hand Data Input:
 {'spades': ['9'], 'diamonds': ['A', '10'], 'hearts': ['K'], 'clubs': ['J']}
 Trump Suit: SPADES
 Expected Output:
-[
-  ["Dix", ('SPADES', '9')]
-]
+["nine of trumps", ('SPADES', '9')]
 
 --- EXAMPLE 9: PINOCHLE ---
 Hand Data Input:
 {'spades': ['Q', '9'], 'diamonds': ['J', '10'], 'hearts': [], 'clubs': []}
 Trump Suit: HEARTS
 Expected Output:
-[
-  ["Pinochle", ('SPADES', 'Q'), ('DIAMONDS', 'J')]
-]
+["Pinochle", ('SPADES', 'Q'), ('DIAMONDS', 'J')]
 
 --- EXAMPLE 10: DOUBLE PINOCHLE ---
 Hand Data Input:
 {'spades': ['Q', 'Q', 'A'], 'diamonds': ['J', 'J', '10'], 'hearts': [], 'clubs': []}
 Trump Suit: CLUBS
 Expected Output:
-[
-  ["Double Pinochle", ('SPADES', 'Q'), ('SPADES', 'Q'), ('DIAMONDS', 'J'), ('DIAMONDS', 'J')]
-]
+["Double Pinochle", ('SPADES', 'Q'), ('SPADES', 'Q'), ('DIAMONDS', 'J'), ('DIAMONDS', 'J')]
 
 --- EXAMPLE 11: MULTIPLE VALID MELDS ---
 Hand Data Input:
 {'spades': ['A', '10', 'K', 'Q', 'J'], 'diamonds': ['J'], 'hearts': ['K', 'Q'], 'clubs': []}
 Trump Suit: SPADES
 Expected Output:
-[
-  ["Run", ('SPADES', 'A'), ('SPADES', '10'), ('SPADES', 'K'), ('SPADES', 'Q'), ('SPADES', 'J')],
-  ["Marriage", ('HEARTS', 'K'), ('HEARTS', 'Q')],
-  ["Pinochle", ('SPADES', 'Q'), ('DIAMONDS', 'J')]
-]
+["Run", ('SPADES', 'A'), ('SPADES', '10'), ('SPADES', 'K'), ('SPADES', 'Q'), ('SPADES', 'J')],
+["Marriage", ('HEARTS', 'K'), ('HEARTS', 'Q')],
+["Pinochle", ('SPADES', 'Q'), ('DIAMONDS', 'J')]
 
 --- EXAMPLE 12: NO VALID MELDS ---
 Hand Data Input:
@@ -121,4 +102,6 @@ Trump Suit: HEARTS
 Expected Output:
 
 CRITICAL: Only cards within the hand given to you may be used.
+ - If you do not have a card, do not use it during output 
+ - If  a card exists in your hand, it may be used for output 
 

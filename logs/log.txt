@@ -1,4 +1,4 @@
-260
+265
 ---------------------------
 PASS
 ---------------------------
@@ -6,55 +6,9 @@ PASS
 ---------------------------
 PASS
 ---------------------------
-DIAMONDS
+SPADES
 ---------------------------
-[('DIAMONDS', 'J'), ('DIAMONDS', 'Q'), ('SPADES', 'K'), ('HEARTS', '10')]
+[('SPADES', '10'), ('SPADES', '9'), ('DIAMONDS', 'Q'), ('DIAMONDS', 'J')]
 ---------------------------
-[('SPADES', 'K'), ('SPADES', 'Q'), ('CLUBS', 'Q'), ('DIAMONDS', '9')]
----------------------------
-[
-  ["Run", ('DIAMONDS', 'A'), ('DIAMONDS', '9'), ('DIAMONDS', '9'), ('DIAMONDS', 'K'), ('DIAMONDS', 'Q')]
-]
----------- Played by 0---
-["Run", ('SPADES', 'A'), ('SPADES', '10'), ('SPADES', 'K'), ('SPADES', 'Q'), ('SPADES', 'J')]
----------------------------
-["Run", ('SPADES', 'A'), ('SPADES', '10'), ('SPADES', 'K'), ('SPADES', 'Q'), ('SPADES', 'J')]
----------------------------
-["Run", ('DIAMONDS', 'A'), ('DIAMONDS', '10'), ('DIAMONDS', 'K'), ('DIAMONDS', 'Q'), ('DIAMONDS', 'J')]
----------------------------
-["Run", ('DIAMONDS', 'A'), ('DIAMONDS', '10'), ('DIAMONDS', 'K'), ('DIAMONDS', 'Q'), ('DIAMONDS', 'J')]
----------------------------
-["Run", ('DIAMONDS', 'A'), ('DIAMONDS', '10'), ('DIAMONDS', 'K'), ('DIAMONDS', 'Q'), ('DIAMONDS', 'J')]
----------------------------
-["Run", ('DIAMONDS', 'A'), ('DIAMONDS', '10'), ('DIAMONDS', 'K'), ('DIAMONDS', 'Q'), ('DIAMONDS', 'J')]
----------------------------
-["Run", ('DIAMONDS', 'A'), ('DIAMONDS', '10'), ('DIAMONDS', 'K'), ('DIAMONDS', 'Q'), ('DIAMONDS', 'J')]
----------------------------
-["Run", ('DIAMONDS', 'A'), ('DIAMONDS', '10'), ('DIAMONDS', 'K'), ('DIAMONDS', 'Q'), ('DIAMONDS', 'J')]
----------------------------
-["Run", ('DIAMONDS', 'A'), ('DIAMONDS', '10'), ('DIAMONDS', 'K'), ('DIAMONDS', 'Q'), ('DIAMONDS', 'J')]
----------------------------
-['marriage', ('CLUBS', 'K'), ('CLUBS', 'Q')]
----------- Played by 1---
-[
-  ["Run", ('DIAMONDS', '10'), ('DIAMONDS', 'J'), ('DIAMONDS', 'Q'), ('SPADES', 'K'), ('CLUBS', 'Q')]
-]
----------- Played by 2---
-["Run", ('DIAMONDS', 'A'), ('DIAMONDS', '10'), ('DIAMONDS', 'K'), ('DIAMONDS', 'Q'), ('DIAMONDS', 'J')]
----------------------------
-["Run", ('DIAMONDS', '10'), ('DIAMONDS', 'J'), ('DIAMONDS', 'Q'), ('SPADES', 'K'), ('HEARTS', 'Q')]
----------------------------
-["Marriage", ('DIAMONDS', 'K'), ('DIAMONDS', 'Q')], ["Run", ('DIAMONDS', '10'), ('DIAMONDS', 'J'), ('DIAMONDS', 'Q')], ["Nine of trumps", ('DIAMONDS', '9')]
----------------------------
-["Run", ('DIAMONDS', '10'), ('DIAMONDS', 'J'), ('DIAMONDS', 'Q'), ('SPADES', 'K'), ('SPADES', 'Q')]
----------------------------
-["Run", ('DIAMONDS', 'A'), ('DIAMONDS', '10'), ('DIAMONDS', 'K'), ('DIAMONDS', 'Q'), ('DIAMONDS', 'J')]
----------------------------
-["Run", ('DIAMONDS', 'A'), ('DIAMONDS', '10'), ('DIAMONDS', 'K'), ('DIAMONDS', 'Q'), ('DIAMONDS', 'J')]
----------------------------
-["Run", ('DIAMONDS', 'A'), ('DIAMONDS', '10'), ('DIAMONDS', 'K'), ('DIAMONDS', 'Q'), ('DIAMONDS', 'J')]
----------------------------
-["Run", ('DIAMONDS', 'A'), ('DIAMONDS', '10'), ('DIAMONDS', 'K'), ('DIAMONDS', 'Q'), ('DIAMONDS', 'J')]
----------------------------
-["Marriage", ('DIAMONDS', 'K'), ('DIAMONDS', 'Q')], ["Run", ('DIAMONDS', 'J'), ('DIAMONDS', '10'), ('DIAMONDS', 'K'), ('DIAMONDS', 'Q'), ('DIAMONDS', '9')]
+[('HEARTS', '9'), ('SPADES', 'J'), ('DIAMONDS', 'A'), ('CLUBS', 'A')]
 ---------------------------

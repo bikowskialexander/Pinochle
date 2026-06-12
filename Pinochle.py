@@ -46,6 +46,12 @@ class Pinochle:
         for i in range(0, self.move_index):
             self.order.append(i)
 
+    def clear_messages(self):
+        for i in range(4):
+            system_prompt = self.players[i].messages[0]
+            self.players[i].messages.clear()
+            self.players[i].append(system_prompt)
+
     def step(self) -> dict:
         if self.game_over() != -1:
             print("Game won by", self.winner, "team")
@@ -69,6 +75,7 @@ class Pinochle:
             self.stage = "MELD"
         elif self.stage == "MELD":
             self.do_meld()
+            self.clear_messages()
             self.stage = "TRICKS"
         elif self.stage == "TRICKS":
             self.do_tricks()
@@ -79,7 +86,7 @@ class Pinochle:
         if player == "":
             self.files.write('---------------------------\n')
         else:
-            self.files.write('---------- Played by ' + str(player) + '---\n')
+            self.files.write('---------- Played by ' + str(player) + '----------\n')
 
     def do_bid(self):
         player_left_count = 4
@@ -185,7 +192,7 @@ class Pinochle:
             self._add_to_logs(meld, i)
             attempts = 1
             while attempts < ATTEMPTS_TILL_FAILURE and not checks.check_meld_valid(self.hands[i], str(meld), self.trumps):
-                meld = self.players[0].get_meld(self.hands[i], self.trumps)
+                meld = self.players[0].get_meld(self.hands[i], self.trumps).strip()
                 self._add_to_logs(meld)
                 attempts += 1
             if attempts >= ATTEMPTS_TILL_FAILURE:

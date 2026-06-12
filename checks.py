@@ -428,7 +428,7 @@ def check_trick(played, hand, card : str, trumps):
         else:
             # Fixed parameter pass sequence to match check_tricks_after_first
             return check_tricks_after_first(card, hand, played, trumps)
-    except ValueError:
+    except:
         return False
 
 
