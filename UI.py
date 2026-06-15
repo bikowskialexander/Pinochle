@@ -1,6 +1,8 @@
 import pygame
 import sys
 
+import Deck
+
 from Constants import *
 
 # --- Base Design Constants ---
@@ -27,6 +29,9 @@ DISPLAY_SUIT_ORDER = ['spades', 'hearts', 'clubs', 'diamonds']
 
 SUIT_SYMBOLS = {'spades': '♠', 'hearts': '♥', 'clubs': '♣', 'diamonds': '♦'}
 SUIT_COLORS = {'spades': TEXT_BLACK, 'hearts': TEXT_RED, 'clubs': TEXT_BLACK, 'diamonds': TEXT_RED}
+
+def index_to_Direction_name(index : int) -> str:
+    return ['North', 'East', 'South', 'West'][index]
 
 class PinochleUI:
     def __init__(self):
@@ -80,7 +85,6 @@ class PinochleUI:
         """Pauses execution for 'seconds' while keeping the window responsive."""
         start_ticks = pygame.time.get_ticks()
         target_ticks = seconds * 1000
-        print(f"Sleeping for {seconds} seconds...")
         while pygame.time.get_ticks() - start_ticks < target_ticks:
             self.render()
 
@@ -99,7 +103,6 @@ class PinochleUI:
     def set_score(self, player, points):
         if player in self.scores:
             self.scores[player] = points
-            print(f"UPDATE: {player} score set to {points}")
 
     def update_hands(self, player_hands):
         for p in ['North', 'South', 'East', 'West']:
@@ -114,39 +117,25 @@ class PinochleUI:
                         self.hands[player_name].append((suit_lower, card))
 
     def play_card(self, player, card_tuple):
-        val1, val2 = card_tuple
-        val1, val2 = str(val1), str(val2)
+        # Force string extraction and enforce uppercase to match the flat tuple list
+        suit = str(card_tuple[0]).upper()
+        rank = str(card_tuple[1]).upper()
+        target_card = (suit, rank)
 
-        target_rank = None
-        target_suit = None
-
-        if val1 in RANK_ORDER:
-            target_rank = val1
-            target_suit = val2
-        elif val2 in RANK_ORDER:
-            target_rank = val2
-            target_suit = val1
-        else:
-            print(f"ERROR: Invalid Card Format {card_tuple}.")
-            return
-
-        target_suit = target_suit.lower()
-        target_card = (target_suit, target_rank) 
-        
         if player in self.hands:
+            # Direct removal bypasses validation rules entirely
             if target_card in self.hands[player]:
                 self.hands[player].remove(target_card)
-                self.center_cards[player] = target_card
-                
-                if target_card in self.meld_highlights[player]:
-                    self.meld_highlights[player].remove(target_card)
-                if target_card in self.green_highlights[player]:
-                    self.green_highlights[player].remove(target_card)
-                
-                print(f"ACTION: {self.player_names[player]} ({player}) played {target_card}")
-            else:
-                print(f"ERROR: {player} tried to play {target_card} but doesn't have it.")
-
+            
+            # Advance game and UI state variables
+            self.center_cards[player] = target_card
+            
+            if target_card in self.meld_highlights.get(player, []):
+                self.meld_highlights[player].remove(target_card)
+            if target_card in self.green_highlights.get(player, []):
+                self.green_highlights[player].remove(target_card)
+            
+   
     def display_meld(self, player, card_list, points):
         if player not in self.meld_highlights: return
         self.scores[player] = points

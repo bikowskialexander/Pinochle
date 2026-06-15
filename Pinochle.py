@@ -5,7 +5,7 @@ import Deck
 import Meld
 import ast 
 import copy
-from UI import PinochleUI
+from UI import PinochleUI, index_to_Direction_name
 
 from Constants import *
 
@@ -15,7 +15,7 @@ from Ollama_opponent import Ollama_Opponent
 class Pinochle:
 
     def __init__(self) -> None:
-        self.players = [Ollama_Opponent(), Opponent(), Ollama_Opponent(), Opponent()]
+        self.players = [Opponent(), Opponent(), Opponent(), Opponent()]
         self.move_index = 0
         self.stage = "BID"
         self.current_bid = 250
@@ -77,6 +77,7 @@ class Pinochle:
             self.do_meld()
             self.stage = "TRICKS"
         elif self.stage == "TRICKS":
+            self.ui.clear_table()
             self.do_tricks()
         return -1
 
@@ -214,29 +215,45 @@ class Pinochle:
         return -1
 
     def do_tricks(self):
-        self.move_index = self.bid_taker_index
+
+        # Get the turn order
         self.define_order()
-        print(self.order)
+
+        # List to keep all played cards, given to agents 
         self.played = []
+
+        # Play loop
         for i in self.order:
+
+            # First attempt to get trick
             trick = self.players[i].get_tricks(self.hands[i], self.trumps, self.played) 
             self._add_to_logs(trick)
             attempts = 1
-            print(trick)
+
+            # Future attempts
             while attempts < ATTEMPTS_TILL_FAILURE and not checks.check_trick(self.played, self.hands[i], trick, self.trumps):
                 trick = self.players[i].get_tricks(self.hands[i], self.trumps, self.played, TRICK_FAILURE_MESSAGE + trick) 
-                print(trick)
                 self._add_to_logs(trick)
                 attempts += 1
+
+            # If valid response could not be generated
             if attempts >= ATTEMPTS_TILL_FAILURE:
                 if i == 0 or i == 2:
                     self.winner = 1
                 else:
                     self.winner = 0
-            trick = checks.parse_card(trick)
-            self.hands[i][trick[0]].remove(trick[1])
-            self.played.append(trick)
-            print(str(i), "Played:", trick)
+            else:
+                # Play trick
+                trick = checks.parse_card(trick)
+                self.hands[i][trick[0]].remove(trick[1])
+                self.played.append(trick)
+
+                # Update the UI
+                player_name = index_to_Direction_name(i)
+                self.ui.play_card(player_name, trick)
+                self.ui.update_hands(self.hands)
+                self.ui.render()
+
         self.tricks_left -= 1
 
     def run(self):
