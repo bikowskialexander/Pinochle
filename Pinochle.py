@@ -122,6 +122,7 @@ class Pinochle:
                 else:
                     for i in range(4):
                         if players_left[i]:
+                            self.move_index = i
                             return i
 
     def do_trumps(self):
