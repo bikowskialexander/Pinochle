@@ -234,13 +234,13 @@ class Pinochle:
 
 
             if ith_value > highest_rank_value and self.played[i][0].lower() == suit_used.lower():
-                highest_rank_index = i
+                highest_rank_index = self.order[i]
                 highest_rank =  self.played[i][1]
 
             # If the trick was trumped
             elif self.played[i][0].lower() == self.trumps.lower() and suit_used.lower() != self.trumps.lower():
                 suit_used = self.trumps
-                highest_rank_index = i
+                highest_rank_index = self.order[i]
                 highest_rank =  self.played[i][1]
 
         # Update the index of the first move
