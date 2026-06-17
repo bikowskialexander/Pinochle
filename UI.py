@@ -105,10 +105,10 @@ class PinochleUI:
             self.scores[player] = points
 
     def update_hands(self, player_hands):
-        for p in ['North', 'South', 'East', 'West']:
+        for p in ['North', 'East', 'South', 'West']:
             self.hands[p] = []
         for player in range(4):
-            player_name = ['North', 'South', 'East', 'West'][player]
+            player_name = ['North', 'East', 'South', 'West'][player]
             for suit in SUITS:
                 # Accepts uppercase SUITS global, converts to map lowercase input dict keys
                 suit_lower = suit.upper()
