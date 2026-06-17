@@ -230,7 +230,6 @@ class Pinochle:
             # If a higher non-trumps has been played, or trumps was played first
             ith_value = CARDS.index(self.played[i][1])
             highest_rank_value = CARDS.index(highest_rank)
-            print(self.played[i][0].lower(), self.trumps.lower())
 
 
             if ith_value > highest_rank_value and self.played[i][0].lower() == suit_used.lower():
@@ -253,7 +252,6 @@ class Pinochle:
 
         # Play loop
         for i in self.order:
-            print(self.order)
 
             # Get the turn order
             self.define_order()
@@ -286,7 +284,6 @@ class Pinochle:
                 self.ui.play_card(player_name, trick)
                 self.ui.update_hands(self.hands)
                 self.ui.render()
-                self.ui.sleep(2.5)
 
         # Update Turn Order
         self._set_move_index_to_winner_of_trick()
