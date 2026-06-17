@@ -62,7 +62,8 @@ def is_a_bid(response, lowest):
     if response == 'PASS':
         return True
     try:
-        response_value = int(response) 
+        response_value = int(response.strip()) 
+        print(response_value)
         return (response_value >= lowest+10)
     except:
         return False    

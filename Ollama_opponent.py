@@ -28,23 +28,11 @@ class Ollama_Opponent(Opponent):
         return response.strip()
         
     def get_bid(self, current: int, hand: dict, additional_message="") -> str:
-        print(current)
-        # Determine minimum legal bid
 
-        new_message_content = (
-            "You are playing Pinochle and are in the bidding phase.\n"
-            "You must decide whether to pass or make a higher competitive bid.\n\n"
-            "CRITICAL OUTPUT FORMAT RULES:\n"
-            "- You must ONLY output the raw word PASS or a single valid integer number.\n"
-            "- Do not wrap the output in markdown code blocks like ```text ... ```.\n"
-            "- Do not include any commentary, analysis, reasoning, or punctuation.\n\n"
-            "BIDDING RULES:\n"
-            f"- The current highest bid on the table is: {current}\n"
-            f"- If you choose to bid, your number must be at least ten higher than the current highest"
-            "EXAMPLES ALLOWED FOR current=250:\n"
-            "PASS\n"
-            f"260\n\n"
-        )
+        # Get the prompt from the file
+        file = open("Prompts/Bid.txt")
+        new_message_content = file.read()
+        file.close()
         
         # Inject additional context and hand data
         if additional_message:
@@ -76,17 +64,10 @@ class Ollama_Opponent(Opponent):
         return self._message_and_response(new_message_content)
     
     def get_pass(self, hand: dict, trumps: str, additional_message="") -> str:
-        new_message_content = (
-            "You are playing Pinochle and are currently in the passing phase.\n"
-            "Review your hand and choose exactly FOUR cards to pass to your teammate.\n\n"
-            "CRITICAL RULES AND FORMATTING CONSTRAINTS:\n"
-            "- Your output must consist entirely of a single, valid Python list structure.\n"
-            "- This list must contain exactly four elements, where each element is a tuple consisting of two strings: ('SUIT', 'rank').\n"
-            "- The suit string inside each tuple must be written in ALL CAPS.\n"
-            "- You must choose cards that are actually present in your hand data.\n"
-            "- Do not format your response with markdown code blocks (do not use ```python or ```).\n"
-            "- Do not include conversational filler, explanation, pleasantries, or preamble.\n\n"
-        )
+        
+        file = open("Prompts/Passing.txt")
+        new_message_content = file.read()
+        file.close()
         
         # Inject the error/feedback message if a previous attempt failed validation
         if additional_message:

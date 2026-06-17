@@ -60,12 +60,13 @@ QWEN_3_5_4B = "qwen3.5:4b"
 QWEN_3_5_37B = "qwen3.5:27b"
 GPTOSS = "gpt-oss:latest"
 NEMOTRON_MINI_4B = "nemotron-mini:4b"
+NEMOTRON_NANO_4B = "nemotron-3-nano:4b"
 COGITO = "cogito:latest"
 LLAMA_3_2 = "llama3.2:latest"
 GEMMA4_E2B = "gemma4:e2b"
 
 # Used model 
-DEFAULT_MODEL = GPTOSS
+DEFAULT_MODEL = NEMOTRON_NANO_4B
 
 
 # ========================================

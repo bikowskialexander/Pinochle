@@ -112,6 +112,48 @@ Cards Played So Far: [('DIAMONDS', 'A'), ('CLUBS', 'A'), ('CLUBS', '10')]
 Expected Output:
 ('CLUBS', 'K')
 
+--- EXAMPLE 15: ONLY ONE LEGAL CARD (SINGLETON IN LEAD SUIT - 5 CARDS IN HAND) ---
+Hand Data Input: {'DIAMONDS': ['J'], 'SPADES': ['A', '10'], 'HEARTS': ['Q'], 'CLUBS': ['9']}
+Trump Suit: SPADES
+Cards Played So Far: [('DIAMONDS', 'A'), ('DIAMONDS', 'K')]
+Expected Output:
+('DIAMONDS', 'J')
+
+--- EXAMPLE 16: ONLY ONE LEGAL CARD (FORCED TO WIN WITH SINGLETON TRUMP - 4 CARDS IN HAND) ---
+Hand Data Input: {'HEARTS': [], 'SPADES': ['K', 'Q'], 'DIAMONDS': ['10'], 'CLUBS': ['J']}
+Trump Suit: DIAMONDS
+Cards Played So Far: [('HEARTS', 'A'), ('HEARTS', '10'), ('DIAMONDS', '9')]
+Expected Output:
+('DIAMONDS', '10')
+
+--- EXAMPLE 17: ONLY ONE LEGAL CARD (LAST CARD IN HAND - ENDGAME TRICK 12) ---
+Hand Data Input: {'HEARTS': [], 'SPADES': [], 'DIAMONDS': [], 'CLUBS': ['9']}
+Trump Suit: HEARTS
+Cards Played So Far: [('CLUBS', 'A'), ('CLUBS', '10'), ('CLUBS', 'K')]
+Expected Output:
+('CLUBS', '9')
+
+--- EXAMPLE 18: LOSING LOW CARD (FOLLOWING LEAD SUIT WITH A '9' VALUE) ---
+Hand Data Input: {'CLUBS': ['9'], 'SPADES': ['A', '10', 'K'], 'DIAMONDS': ['A'], 'HEARTS': ['Q']}
+Trump Suit: HEARTS
+Cards Played So Far: [('CLUBS', 'A'), ('CLUBS', '10')]
+Expected Output:
+('CLUBS', '9')
+
+--- EXAMPLE 19: FOLLOWING SUIT WITH LOWEST CARDS ('J' AND '9' REMAINING) ---
+Hand Data Input: {'DIAMONDS': ['J', '9'], 'SPADES': ['K', 'Q'], 'HEARTS': [], 'CLUBS': ['10']}
+Trump Suit: SPADES
+Cards Played So Far: [('DIAMONDS', 'A'), ('DIAMONDS', '10')]
+Expected Output:
+('DIAMONDS', 'J')
+
+--- EXAMPLE 20: DUMPING A LOW RANK TRUMP ON AN UNBEATABLE TRICK ---
+Hand Data Input: {'SPADES': [], 'CLUBS': ['A', '10'], 'HEARTS': ['9'], 'DIAMONDS': ['K', 'Q']}
+Trump Suit: HEARTS
+Cards Played So Far: [('SPADES', 'A'), ('HEARTS', 'A'), ('HEARTS', '10')]
+Expected Output:
+('HEARTS', '9')
+
 --- YOUR TARGET TASK ---
 Evaluate the live game data below. Determine your legal card to play. 
 Output your final answer as a raw card tuple now. Do not talk. Do not analyze. Do not use code blocks.
