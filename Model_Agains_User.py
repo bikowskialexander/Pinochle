@@ -10,7 +10,7 @@ class Model_Against_User(Multi_Agent_Opponent):
         self.bot_opponent = Opponent()
         self.bid_model = GRANITE4_350M
         self.trumps_model = GRANITE4_350M
-        self.trick_model = QWEN_3_5_9B
+        self.trick_model = GRANITE4_1_8B
 
     def get_meld(self, hand, trumps, additional_message="") -> str:
         return self.bot_opponent.get_meld(hand, trumps, additional_message="")
