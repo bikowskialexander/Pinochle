@@ -15,10 +15,10 @@ from Ollama_opponent import Ollama_Opponent
 class Pinochle:
 
     def __init__(self) -> None:
-        self.players = [Opponent(), Opponent(), Opponent(), Opponent()]
+        self.players = [Ollama_Opponent(), Opponent(), Ollama_Opponent(), Opponent()]
         self.move_index = 0
         self.stage = "BID"
-        self.current_bid = 250
+        self.current_bid = 240
         self.hands = []
         self.point_values = [0, 0]
         self.tricks_left = 12
@@ -286,7 +286,8 @@ class Pinochle:
                 self.ui.render()
 
         # Update Turn Order
-        self._set_move_index_to_winner_of_trick()
+        if attempts < ATTEMPTS_TILL_FAILURE:
+            self._set_move_index_to_winner_of_trick()
 
         # Update the number of tricks
         self.tricks_left -= 1

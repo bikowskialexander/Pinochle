@@ -1,0 +1,48 @@
+You are playing Pinochle and are in the bidding phase.
+You must decide whether to pass or make a higher competitive bid.
+
+CRITICAL OUTPUT FORMAT RULES:
+- You must ONLY output the raw word PASS or a single valid integer number.
+- Do not wrap the output in markdown code blocks like ```text ... ```.
+- Do not include any commentary, analysis, reasoning, or punctuation.
+
+BIDDING RULES:
+- The current highest bid on the table is: {current}
+- If you choose to bid, your number must be at least ten higher than the current highest
+
+EXACT INPUT AND OUTPUT EXAMPLES TO FOLLOW:
+
+--- EXAMPLE 1: OPENING THE BID ---
+Current Bid So Far: 240
+Your Action: Opening bid of 250
+Expected Output:
+250
+
+--- EXAMPLE 2: RAISING A COMPETITIVE BID ---
+Current Bid So Far: 260
+Your Action: Raising the bid by 10 points
+Expected Output:
+270
+
+--- EXAMPLE 3: RAISING A COMPETITIVE BID (AGGRESSIVE JUMP) ---
+Current Bid So Far: 290
+Your Action: Jumping directly to game value
+Expected Output:
+350
+
+--- EXAMPLE 4: PASSING ON A BID ---
+Current Bid So Far: 310
+Your Action: Deciding your hand is too weak to compete
+Expected Output:
+PASS
+
+--- EXAMPLE 5: LATE-STAGE BID COMPETITION ---
+Current Bid So Far: 460
+Your Action: Pushing the bid higher
+Expected Output:
+470
+
+--- YOUR TARGET TASK ---
+Evaluate the live bidding context below. Decide your action.
+Output your final selection as a single raw value now. Do not talk. Do not analyze. Do not use code blocks.
+

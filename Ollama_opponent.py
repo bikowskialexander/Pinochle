@@ -31,20 +31,9 @@ class Ollama_Opponent(Opponent):
         print(current)
         # Determine minimum legal bid
 
-        new_message_content = (
-            "You are playing Pinochle and are in the bidding phase.\n"
-            "You must decide whether to pass or make a higher competitive bid.\n\n"
-            "CRITICAL OUTPUT FORMAT RULES:\n"
-            "- You must ONLY output the raw word PASS or a single valid integer number.\n"
-            "- Do not wrap the output in markdown code blocks like ```text ... ```.\n"
-            "- Do not include any commentary, analysis, reasoning, or punctuation.\n\n"
-            "BIDDING RULES:\n"
-            f"- The current highest bid on the table is: {current}\n"
-            f"- If you choose to bid, your number must be at least ten higher than the current highest"
-            "EXAMPLES ALLOWED FOR current=250:\n"
-            "PASS\n"
-            f"260\n\n"
-        )
+        file = open("Prompts/Bid.txt")
+        new_message_content = file.read()
+        file.close()
         
         # Inject additional context and hand data
         if additional_message:
