@@ -229,6 +229,8 @@ class Pinochle:
             # If a higher non-trumps has been played, or trumps was played first
             ith_value = CARDS.index(self.played[i][1])
             highest_rank_value = CARDS.index(highest_rank)
+            print(self.played[i][0].lower(), self.trumps.lower())
+
 
             if ith_value > highest_rank_value and self.played[i][0].lower() == suit_used.lower():
                 highest_rank_index = i
