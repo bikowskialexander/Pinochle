@@ -1,65 +1,33 @@
-PASS
----------------------------
 250
 ---------------------------
+260
+---------------------------
+260
+---------------------------
+260
+---------------------------
+PASS
+---------------------------
 PASS
 ---------------------------
 PASS
 ---------------------------
-HEARTS
+SPADES
 ---------------------------
-[['HEARTS', 'J'], ['HEARTS', '10'], ['HEARTS', '10'], ['HEARTS', 'A']]
+[('SPADES','Q'), ('DIAMONDS','Q'), ('CLUBS','Q'), ('HEARTS','J')]
 ---------------------------
-[['HEARTS', 'A'], ['HEARTS', '9'], ['HEARTS', 'Q'], ['SPADES', 'A']]
+[( 'HEARTS', 'K' ), ( 'HEARTS', '9' ), ( 'SPADES', 'Q' ), ( 'DIAMONDS', 'J' )]
 ---------------------------
-["King",  ('HEARTS','K'), ('SPADES','K'), ('DIAMONDS','K'), ('CLUBS','K')]
-["nine of trumps",  ('SPADES','9')]
+["nine of trumps", ('SPADES', '9')],
+["Marriage", ('HEARTS', 'K'), ('HEARTS', 'Q')], 
+["Pinochle", ('SPADES', 'Q'),('DIAMONDS', 'J')]
 ---------- Played by 0----------
-["Marriage","('DIAMONDS','K'),("('', 'Q')]"
+["Royal Marriage", ('SPADES','K'),('SPADES','Q')],
+["Pinochle", ('SPADES','Q'),('DIAMONDS','J')]
 ---------- Played by 0----------
-["Marriage", ('DIAMONDS', 'K'), ('DIAMONDS', 'Q')]
+["Royal Marriage", ('SPADES', 'K'), ('SPADES', 'Q')], ["Marriage", ('HEARTS', 'K'), ('HEARTS', 'Q')], ["Pinochle", ('SPADES', 'Q'), ('DIAMONDS', 'J')]
 ---------- Played by 0----------
-['nine of trumps', ('HEARTS', '9')]
----------- Played by 1----------
-["Royal Marriage",("HEARTS","K"),("HEARTS","Q")]
-["Marriage", ("CLUBS","K"),("CLUBS","Q")]
-["nine of trumps",("HEARTS","9")]
----------- Played by 2----------
+["Royal Marriage", ('SPADES', 'K'), ('SPADES', 'Q')]
+---------- Played by 0----------
 
----------- Played by 3----------
-('HEARTS', 'A')
----------------------------
-('HEARTS', 'Q')
----------------------------
-('HEARTS', 'J')
----------------------------
-('HEARTS', 'K')
----------------------------
-('HEARTS', 'A')
----------------------------
-('SPADES', 'K')
----------------------------
-('SPADES', '10')
----------------------------
-('HEARTS','J')
----------------------------
-('CLUBS', 'A')
----------------------------
-('HEARTS', 'J')
----------------------------
-('HEARTS', '9')
----------------------------
-('CLUBS', '9')
----------------------------
-('HEARTS', 'J')
----------------------------
-('HEARTS', 'J')
----------------------------
-('HEARTS', 'K')
----------------------------
-('CLUBS', 'A')
----------------------------
-('CLUBS', 'A')
----------------------------
-('SPADES', 'A')
----------------------------
+---------- Played by 1----------

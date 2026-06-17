@@ -1,5 +1,5 @@
 You are playing Pinochle and are in the bidding phase.
-You must decide whether to pass or make a higher competitive bid.
+You must decide whether to pass or make a higher competitive bid based on your hand strength.
 
 CRITICAL OUTPUT FORMAT RULES:
 - You must ONLY output the raw word PASS or a single valid integer number.
@@ -7,57 +7,65 @@ CRITICAL OUTPUT FORMAT RULES:
 ```.
 - Do not include any commentary, analysis, reasoning, or punctuation.
 
-BIDDING RULES:
-- The current highest bid on the table is: {current}
-- If you choose to bid, your number must be at least ten higher than the current highest
+BIDDING RULES AND LOGIC:
+- The minimum opening bid in this game is 250.
+- If the current highest bid is 240, it means no one has opened yet. You must either PASS or jump straight to 250 (or higher) to open. Bidding 241-249 is illegal.
+- If a bid is already open (250 or higher), any new bid you make must be an increment of 10 points or higher than the current highest bid (e.g., if current is 250, your minimum legal bid is 260).
+- Once you choose to PASS, you are out of the auction permanently.
 
 EXACT INPUT AND OUTPUT EXAMPLES TO FOLLOW:
 
---- EXAMPLE 1: FIRST PLAYER OPENING THE BID ---
+--- EXAMPLE 1: FIRST PLAYER OPENING THE AUCTION ---
 Current Bid So Far: 240
-Your Action: Opening bid of 250
+Your Action: Opening the auction at the required game minimum of 250
 Expected Output:
 250
 
---- EXAMPLE 2: IMMEDIATE PASS ON THE MINIMUM OPENING ---
-Current Bid So Far: 250
-Your Action: Deciding your hand has zero meld and passing immediately
+--- EXAMPLE 2: IMMEDIATE PASS ON AN UNOPENED HAND ---
+Current Bid So Far: 240
+Your Action: Deciding your hand is too weak to open the bidding at 250
 Expected Output:
 PASS
 
---- EXAMPLE 3: EARLY BID COMPETE STEP-UP ---
+--- EXAMPLE 3: IMMEDIATE PASS ON THE MINIMUM OPENING ---
 Current Bid So Far: 250
-Your Action: Advancing the minimum bid by 10 points
+Your Action: Left-hand opponent opened with 250; your hand is weak, so you drop out
+Expected Output:
+PASS
+
+--- EXAMPLE 4: EARLY BID COMPETE STEP-UP ---
+Current Bid So Far: 250
+Your Action: Overbidding the 250 opener by the minimum legal increment of 10 points
 Expected Output:
 260
 
---- EXAMPLE 4: PASSING EARLY TO CONCEDE THE BID TO PARTNER ---
+--- EXAMPLE 5: PASSING EARLY TO CONCEDE THE BID TO PARTNER ---
 Current Bid So Far: 260
-Your Action: Choosing to pass early to leave the auction to your partner
+Your Action: Choosing to pass to let your partner compete instead
 Expected Output:
 PASS
 
---- EXAMPLE 5: RAISING A COMPETITIVE BID ---
+--- EXAMPLE 6: RAISING A COMPETITIVE BID ---
 Current Bid So Far: 270
-Your Action: Raising the bid by 10 points
+Your Action: Advancing the bid securely by the minimum 10-point increment
 Expected Output:
 280
 
---- EXAMPLE 6: RAISING A COMPETITIVE BID (AGGRESSIVE JUMP) ---
+--- EXAMPLE 7: RAISING A COMPETITIVE BID (AGGRESSIVE VALUE JUMP) ---
 Current Bid So Far: 290
-Your Action: Jumping directly to a secure game value
+Your Action: Jumping directly to a high value because your hand has heavy meld
 Expected Output:
 350
 
---- EXAMPLE 7: PASSING ON A MID-STAGE BID ---
+--- EXAMPLE 8: PASSING ON A MID-STAGE BID ---
 Current Bid So Far: 310
-Your Action: Deciding your hand is too weak to compete at this level
+Your Action: Deciding the price has gotten too high for your hand's trick-taking potential
 Expected Output:
 PASS
 
---- EXAMPLE 8: LATE-STAGE BID COMPETITION ---
+--- EXAMPLE 9: LATE-STAGE BID COMPETITION ---
 Current Bid So Far: 460
-Your Action: Pushing the bid higher deep in the auction
+Your Action: Pushing the auction higher deep into a high-stakes competitive run
 Expected Output:
 470
 

@@ -62,7 +62,6 @@ class Pinochle:
         self.files = open("logs/log.txt", 'a')
         print(self.stage)
         self.define_order()
-        self.clear_messages()
         if self.stage == "BID":
             self.bid_taker_index = self.do_bid()
             if self.bid_taker_index != None:
@@ -78,6 +77,7 @@ class Pinochle:
             self.do_meld()
             self.stage = "TRICKS"
         elif self.stage == "TRICKS":
+            self.clear_messages()
             self.ui.clear_table()
             self.do_tricks()
         return -1

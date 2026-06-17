@@ -28,9 +28,8 @@ class Ollama_Opponent(Opponent):
         return response.strip()
         
     def get_bid(self, current: int, hand: dict, additional_message="") -> str:
-        print(current)
-        # Determine minimum legal bid
 
+        # Get the prompt from the file
         file = open("Prompts/Bid.txt")
         new_message_content = file.read()
         file.close()
