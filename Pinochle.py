@@ -65,7 +65,7 @@ class Pinochle:
         if self.stage == "BID":
             self.bid_taker_index = self.do_bid()
             if self.bid_taker_index != None:
-                self.ui.set_score(['North', 'South', 'East', 'West'][self.bid_taker_index], self.current_bid)
+                self.ui.set_score(['North', 'East', 'South', 'West'][self.bid_taker_index], self.current_bid)
             self.stage = "TRUMPS"
         elif self.stage == "TRUMPS":
             self.trumps = self.do_trumps()
@@ -122,6 +122,7 @@ class Pinochle:
                 else:
                     for i in range(4):
                         if players_left[i]:
+                            self.move_index = i
                             return i
 
     def do_trumps(self):
@@ -213,17 +214,47 @@ class Pinochle:
         elif self.point_values[1] >= 250:
             return 1
         return -1
+    
+    def _set_move_index_to_winner_of_trick(self):
+
+        # Set max to the rank of the first card
+        highest_rank = self.played[0][1]
+        highest_rank_index = 0
+
+        # Set suit used to the first suit
+        suit_used = self.played[0][0]
+
+        # Loop through cards
+        for i in range(1,4):
+
+            # If a higher non-trumps has been played, or trumps was played first
+            ith_value = CARDS.index(self.played[i][1])
+            highest_rank_value = CARDS.index(highest_rank)
+
+
+            if ith_value > highest_rank_value and self.played[i][0].lower() == suit_used.lower():
+                highest_rank_index = self.order[i]
+                highest_rank =  self.played[i][1]
+
+            # If the trick was trumped
+            elif self.played[i][0].lower() == self.trumps.lower() and suit_used.lower() != self.trumps.lower():
+                suit_used = self.trumps
+                highest_rank_index = self.order[i]
+                highest_rank =  self.played[i][1]
+
+        # Update the index of the first move
+        self.move_index = highest_rank_index
 
     def do_tricks(self):
-
-        # Get the turn order
-        self.define_order()
 
         # List to keep all played cards, given to agents 
         self.played = []
 
         # Play loop
         for i in self.order:
+
+            # Get the turn order
+            self.define_order()
 
             # First attempt to get trick
             trick = self.players[i].get_tricks(self.hands[i], self.trumps, self.played) 
@@ -242,7 +273,7 @@ class Pinochle:
                     self.winner = 1
                 else:
                     self.winner = 0
-            else:
+            else: # Valid response generated
                 # Play trick
                 trick = checks.parse_card(trick)
                 self.hands[i][trick[0]].remove(trick[1])
@@ -254,6 +285,10 @@ class Pinochle:
                 self.ui.update_hands(self.hands)
                 self.ui.render()
 
+        # Update Turn Order
+        self._set_move_index_to_winner_of_trick()
+
+        # Update the number of tricks
         self.tricks_left -= 1
 
     def run(self):
