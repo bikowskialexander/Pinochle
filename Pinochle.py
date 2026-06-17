@@ -62,6 +62,7 @@ class Pinochle:
         self.files = open("logs/log.txt", 'a')
         print(self.stage)
         self.define_order()
+        self.clear_messages()
         if self.stage == "BID":
             self.bid_taker_index = self.do_bid()
             if self.bid_taker_index != None:

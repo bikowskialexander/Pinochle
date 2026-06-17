@@ -3,7 +3,8 @@ You must decide whether to pass or make a higher competitive bid.
 
 CRITICAL OUTPUT FORMAT RULES:
 - You must ONLY output the raw word PASS or a single valid integer number.
-- Do not wrap the output in markdown code blocks like ```text ... ```.
+- Do not wrap the output in markdown code blocks like ```text ... 
+```.
 - Do not include any commentary, analysis, reasoning, or punctuation.
 
 BIDDING RULES:
@@ -12,37 +13,54 @@ BIDDING RULES:
 
 EXACT INPUT AND OUTPUT EXAMPLES TO FOLLOW:
 
---- EXAMPLE 1: OPENING THE BID ---
+--- EXAMPLE 1: FIRST PLAYER OPENING THE BID ---
 Current Bid So Far: 240
 Your Action: Opening bid of 250
 Expected Output:
 250
 
---- EXAMPLE 2: RAISING A COMPETITIVE BID ---
-Current Bid So Far: 260
-Your Action: Raising the bid by 10 points
-Expected Output:
-270
-
---- EXAMPLE 3: RAISING A COMPETITIVE BID (AGGRESSIVE JUMP) ---
-Current Bid So Far: 290
-Your Action: Jumping directly to game value
-Expected Output:
-350
-
---- EXAMPLE 4: PASSING ON A BID ---
-Current Bid So Far: 310
-Your Action: Deciding your hand is too weak to compete
+--- EXAMPLE 2: IMMEDIATE PASS ON THE MINIMUM OPENING ---
+Current Bid So Far: 250
+Your Action: Deciding your hand has zero meld and passing immediately
 Expected Output:
 PASS
 
---- EXAMPLE 5: LATE-STAGE BID COMPETITION ---
+--- EXAMPLE 3: EARLY BID COMPETE STEP-UP ---
+Current Bid So Far: 250
+Your Action: Advancing the minimum bid by 10 points
+Expected Output:
+260
+
+--- EXAMPLE 4: PASSING EARLY TO CONCEDE THE BID TO PARTNER ---
+Current Bid So Far: 260
+Your Action: Choosing to pass early to leave the auction to your partner
+Expected Output:
+PASS
+
+--- EXAMPLE 5: RAISING A COMPETITIVE BID ---
+Current Bid So Far: 270
+Your Action: Raising the bid by 10 points
+Expected Output:
+280
+
+--- EXAMPLE 6: RAISING A COMPETITIVE BID (AGGRESSIVE JUMP) ---
+Current Bid So Far: 290
+Your Action: Jumping directly to a secure game value
+Expected Output:
+350
+
+--- EXAMPLE 7: PASSING ON A MID-STAGE BID ---
+Current Bid So Far: 310
+Your Action: Deciding your hand is too weak to compete at this level
+Expected Output:
+PASS
+
+--- EXAMPLE 8: LATE-STAGE BID COMPETITION ---
 Current Bid So Far: 460
-Your Action: Pushing the bid higher
+Your Action: Pushing the bid higher deep in the auction
 Expected Output:
 470
 
 --- YOUR TARGET TASK ---
 Evaluate the live bidding context below. Decide your action.
 Output your final selection as a single raw value now. Do not talk. Do not analyze. Do not use code blocks.
-

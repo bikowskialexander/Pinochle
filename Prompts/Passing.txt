@@ -1,0 +1,34 @@
+You are playing Pinochle and are currently in the passing phase.
+Review your hand and choose exactly FOUR cards to pass to your teammate.
+
+CRITICAL RULES AND FORMATTING CONSTRAINTS:
+- Your output must consist entirely of a single, valid Python list structure.
+- This list must contain exactly four elements, where each element is a tuple consisting of two strings: ('SUIT', 'rank').
+- The suit string inside each tuple must be written in ALL CAPS.
+- You must choose cards that are actually present in your hand data.
+- Do not format your response with markdown code blocks (do not use ```python or ```).
+- Do not include conversational filler, explanation, pleasantries, or preamble.
+
+EXACT INPUT AND OUTPUT EXAMPLES TO FOLLOW:
+
+--- EXAMPLE 1: PASSING STRONG TRUMP SUPPORT AND ACES ---
+Hand Data Input: [('HEARTS', 'A'), ('HEARTS', '10'), ('HEARTS', 'K'), ('SPADES', 'A'), ('SPADES', 'Q'), ('DIAMONDS', '9'), ('CLUBS', 'K'), ('CLUBS', '9'), ('CLUBS', 'J'), ('CLUBS', 'Q'), ('DIAMONDS', 'J'), ('SPADES', '10')]
+Trump Suit: HEARTS
+Expected Output:
+[('HEARTS', 'A'), ('HEARTS', '10'), ('SPADES', 'A'), ('HEARTS', 'K')]
+
+--- EXAMPLE 2: PASSING USELESS OFF-SUIT CARDS (SLUFFS/DRAIN) ---
+Hand Data Input: [('SPADES', 'A'), ('SPADES', '10'), ('SPADES', 'K'), ('SPADES', 'Q'), ('SPADES', 'J'), ('DIAMONDS', '9'), ('DIAMONDS', 'J'), ('CLUBS', '9'), ('CLUBS', 'Q'), ('HEARTS', 'Q'), ('HEARTS', 'J'), ('HEARTS', '9')]
+Trump Suit: SPADES
+Expected Output:
+[('DIAMONDS', '9'), ('DIAMONDS', 'J'), ('CLUBS', '9'), ('HEARTS', '9')]
+
+--- EXAMPLE 3: PASSING TO HELP PARTNER WITH MELD COMBINATIONS ---
+Hand Data Input: [('DIAMONDS', 'A'), ('DIAMONDS', 'K'), ('DIAMONDS', 'Q'), ('SPADES', 'Q'), ('HEARTS', 'J'), ('CLUBS', 'A'), ('CLUBS', '10'), ('CLUBS', 'K'), ('CLUBS', 'Q'), ('CLUBS', 'J'), ('SPADES', '9'), ('HEARTS', '9')]
+Trump Suit: DIAMONDS
+Expected Output:
+[('DIAMONDS', 'K'), ('DIAMONDS', 'Q'), ('SPADES', 'Q'), ('HEARTS', 'J')]
+
+--- YOUR TARGET TASK ---
+Evaluate your current hand data and the declared trump suit below. Choose exactly four cards to pass.
+Output your final selection as a single raw Python list structure now. Do not talk. Do not analyze. Do not use code blocks.
