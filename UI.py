@@ -23,6 +23,9 @@ MELD_COLOR = (255, 215, 0)
 SELECTION_COLOR = (0, 255, 0)
 HOVER_COLOR = (144, 238, 144)
 
+HOVER_COLOR = (200, 245, 200) # Slightly deeper hover green for distinct contrast
+BUTTON_BG = (230, 230, 230)    # Light gray baseline so it stands out from card
+
 # Sorting / Display Order - Internally lowercase for UI processing mapping
 RANK_ORDER = {'A': 5, '10': 4, 'K': 3, 'Q': 2, 'J': 1, '9': 0}
 DISPLAY_SUIT_ORDER = ['spades', 'hearts', 'clubs', 'diamonds']
@@ -32,6 +35,7 @@ SUIT_COLORS = {'spades': TEXT_BLACK, 'hearts': TEXT_RED, 'clubs': TEXT_BLACK, 'd
 
 def index_to_Direction_name(index : int) -> str:
     return ['North', 'East', 'South', 'West'][index]
+
 
 class PinochleUI:
     def __init__(self):
@@ -66,7 +70,7 @@ class PinochleUI:
         self.font_main = pygame.font.SysFont('arial', scaled_font_main, bold=True)
         self.font_suit = pygame.font.SysFont('arial', scaled_font_suit) 
 
-        # Data Stores (Suits completely lowercase internally)
+        # Data Stores
         self.hands = {'North': [], 'South': [], 'East': [], 'West': []}
         self.center_cards = {}
         self.meld_highlights = {'North': set(), 'South': set(), 'East': set(), 'West': set()}
@@ -80,6 +84,9 @@ class PinochleUI:
 
         self.clickable_rects = [] 
         self._pending_user_click = None
+        
+        # Bidding Phase Variable Tracking
+        self.latest_bid_action = None
 
     def sleep(self, seconds):
         """Pauses execution for 'seconds' while keeping the window responsive."""
@@ -94,6 +101,19 @@ class PinochleUI:
             self._pending_user_click = None
             return card
         return None
+
+    def get_user_bidding_choice(self, current_bid) -> str:
+        """
+        Enters a blocking game loop that keeps rendering until the user clicks 
+        either the Bid or Pass button. Returns the choice string.
+        """
+        self.latest_bid_action = None
+        while self.latest_bid_action is None:
+            self.render(current_bid=current_bid)
+        
+        action = self.latest_bid_action
+        self.latest_bid_action = None
+        return action
 
     def set_player_names(self, names_dict):
         for pos, name in names_dict.items():
@@ -110,24 +130,20 @@ class PinochleUI:
         for player in range(4):
             player_name = ['North', 'East', 'South', 'West'][player]
             for suit in SUITS:
-                # Accepts uppercase SUITS global, converts to map lowercase input dict keys
                 suit_lower = suit.upper()
                 if suit_lower in player_hands[player]:
                     for card in player_hands[player][suit_lower]:
                         self.hands[player_name].append((suit_lower, card))
 
     def play_card(self, player, card_tuple):
-        # Force string extraction and enforce uppercase to match the flat tuple list
         suit = str(card_tuple[0]).upper()
         rank = str(card_tuple[1]).upper()
         target_card = (suit, rank)
 
         if player in self.hands:
-            # Direct removal bypasses validation rules entirely
             if target_card in self.hands[player]:
                 self.hands[player].remove(target_card)
             
-            # Advance game and UI state variables
             self.center_cards[player] = target_card
             
             if target_card in self.meld_highlights.get(player, []):
@@ -135,7 +151,6 @@ class PinochleUI:
             if target_card in self.green_highlights.get(player, []):
                 self.green_highlights[player].remove(target_card)
             
-   
     def display_meld(self, player, card_list, points):
         if player not in self.meld_highlights: return
         self.scores[player] = points
@@ -163,6 +178,47 @@ class PinochleUI:
 
     def clear_table(self):
         self.center_cards = {}
+
+    def display_bidding_panel(self, current_bid):
+        """Creates a dual-button interactive console panel in the center area."""
+        try:
+            bid_int = int(current_bid)
+            next_legal_bid = str(bid_int + 10) if bid_int >= 250 else "250"
+        except (ValueError, TypeError):
+            next_legal_bid = "250"
+
+        cx, cy = self.screen_w // 2, self.screen_h // 2
+        
+        # Dimensions
+        btn_w = int(180 * self.scale)
+        btn_h = int(60 * self.scale)
+        gap = int(20 * self.scale)
+        
+        # Positions: Pass on left, Bid on right
+        pass_rect = pygame.Rect(cx - btn_w - gap // 2, cy - btn_h // 2, btn_w, btn_h)
+        bid_rect = pygame.Rect(cx + gap // 2, cy - btn_h // 2, btn_w, btn_h)
+        
+        mouse_pos = pygame.mouse.get_pos()
+
+        # --- Draw Pass Button ---
+        pass_bg = HOVER_COLOR if pass_rect.collidepoint(mouse_pos) else BUTTON_BG
+        pygame.draw.rect(self.screen, pass_bg, pass_rect, border_radius=10)
+        pygame.draw.rect(self.screen, TEXT_BLACK, pass_rect, 2 if pass_bg == BUTTON_BG else 4, border_radius=10)
+        
+        pass_surf = self.font_main.render("PASS", True, TEXT_RED)
+        pass_rect_center = pass_surf.get_rect(center=pass_rect.center)
+        self.screen.blit(pass_surf, pass_rect_center)
+        self.clickable_rects.append((pass_rect, "BID_ACTION:PASS"))
+
+        # --- Draw Bid Button ---
+        bid_bg = HOVER_COLOR if bid_rect.collidepoint(mouse_pos) else BUTTON_BG
+        pygame.draw.rect(self.screen, bid_bg, bid_rect, border_radius=10)
+        pygame.draw.rect(self.screen, TEXT_BLACK, bid_rect, 2 if bid_bg == BUTTON_BG else 4, border_radius=10)
+        
+        bid_surf = self.font_main.render(f"BID: {next_legal_bid}", True, TEXT_BLACK)
+        bid_rect_center = bid_surf.get_rect(center=bid_rect.center)
+        self.screen.blit(bid_surf, bid_rect_center)
+        self.clickable_rects.append((bid_rect, f"BID_ACTION:{next_legal_bid}"))
 
     # --- DRAWING LOGIC ---
 
@@ -214,7 +270,6 @@ class PinochleUI:
             card_rect = self._draw_card(x, start_y, rank, suit, color, thick)
             
             if is_user:
-                # Returns the suit parameter back upstream transformed as uppercase to match your game logic expectation
                 self.clickable_rects.append((card_rect, (suit.upper(), rank)))
 
     def _draw_hand_grid(self, player_key, is_left_side):
@@ -276,7 +331,7 @@ class PinochleUI:
         east_rect = east_rotated.get_rect(center=(self.screen_w - side_margin_center, self.screen_h // 2))
         self.screen.blit(east_rotated, east_rect)
 
-    def _draw_scene(self):
+    def _draw_scene(self, current_bid=None):
         self.screen.fill(BG_COLOR)
         self.clickable_rects = [] 
         self.draw_labels()
@@ -284,10 +339,15 @@ class PinochleUI:
         self._draw_hand_horizontal('South', self.screen_h - self.card_h - self.pad_large)
         self._draw_hand_grid('West', is_left_side=True)
         self._draw_hand_grid('East', is_left_side=False)
-        self._draw_center_trick()
+        
+        if current_bid is not None:
+            self.display_bidding_panel(current_bid)
+        else:
+            self._draw_center_trick()
+            
         pygame.display.flip()
 
-    def render(self):
+    def render(self, current_bid=None):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit(); sys.exit()
@@ -295,53 +355,15 @@ class PinochleUI:
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                 self.clear_table()
             
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 1: 
-                    mouse_pos = event.pos
-                    for rect, (suit, rank) in self.clickable_rects:
-                        if rect.collidepoint(mouse_pos):
-                            self._pending_user_click = (suit, rank)
-                            break
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                mouse_pos = event.pos
+                for rect, identity in self.clickable_rects:
+                    if rect.collidepoint(mouse_pos):
+                        if isinstance(identity, str) and identity.startswith("BID_ACTION:"):
+                            self.latest_bid_action = identity.split(":")[1]
+                        else:
+                            self._pending_user_click = identity
+                        break
 
-        self._draw_scene()
+        self._draw_scene(current_bid)
         self.clock.tick(30)
-
-# --- TEST BLOCK ---
-if __name__ == "__main__":
-    game = PinochleUI()
-
-    game.set_player_names({
-        'North': 'AI_North',
-        'South': 'user',
-        'East':  'AI_East',
-        'West':  'AI_West'
-    })
-
-    # Kept input deck initialization keys lowercase to reflect your game state storage format
-    full_hands = [
-        { 'spades': ['A', '10', 'K'], 'hearts': ['A', '10', 'K'], 'clubs': ['A', '10', 'K'], 'diamonds': ['A', '10', 'K'] },
-        { 'spades': ['A', 'A', '10', '10', 'K', 'K', 'Q', 'Q', 'J', 'J'], 'diamonds': ['A', '10'], 'hearts': [], 'clubs': [] },
-        { 'clubs': ['Q', 'Q', 'J', 'J', '9', '9'], 'hearts': ['Q', 'Q', 'J', 'J', '9', '9'], 'spades': [], 'diamonds': [] },
-        { 'diamonds': ['Q', 'Q', 'J', 'J', '9', '9'], 'spades': ['9', '9'], 'clubs': ['A', '10'], 'hearts': ['A', '10'] }
-    ]
-    
-    game.update_hands(full_hands)
-
-    print("--- Testing Sleep Function ---")
-    
-    # 1. Accepts uppercase parameter format seamlessly 
-    game.play_card('North', ('HEARTS', 'A'))
-    game.sleep(2.0) 
-    
-    # 2. Handles alternate flipped-tuple parameters gracefully
-    game.play_card('East', ('9', 'HEARTS'))
-    game.sleep(2.0) 
-    
-    print("System Ready. Polling for user clicks...")
-    
-    while True:
-        game.render()
-        user_card = game.get_latest_from_user()
-        if user_card:
-            print(f"GAME LOGIC: Received input {user_card}")  # Will print out uppercase suit variant
-            game.play_card('South', user_card)

@@ -13,11 +13,12 @@ from Opponent import Opponent
 from Ollama_opponent import Ollama_Opponent
 from Multi_Agent_Opponent import Multi_Agent_Opponent
 from Model_Agains_User import Model_Against_User
+from User_Opponenet import User_Opponent
 
 class Pinochle:
 
     def __init__(self) -> None:
-        self.players = [Model_Against_User(), Opponent(), Model_Against_User(), Opponent()]
+        self.players = [User_Opponent(), Opponent(), Opponent(), Opponent()]
         self.move_index = 0
         self.stage = "BID"
         self.current_bid = 240
@@ -29,6 +30,12 @@ class Pinochle:
         self.player_index = 1
 
         self.files = open("logs/log.txt", 'w')
+
+        for i in range(4):
+            try:
+                self.players[i].ui = self.ui 
+            except AttributeError:
+                pass 
 
         self.setup()
 
