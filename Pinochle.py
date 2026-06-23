@@ -11,11 +11,13 @@ from Constants import *
 
 from Opponent import Opponent
 from Ollama_opponent import Ollama_Opponent
+from Multi_Agent_Opponent import Multi_Agent_Opponent
+from Model_Agains_User import Model_Against_User
 
 class Pinochle:
 
     def __init__(self) -> None:
-        self.players = [Ollama_Opponent(), Opponent(), Ollama_Opponent(), Opponent()]
+        self.players = [Model_Against_User(), Opponent(), Model_Against_User(), Opponent()]
         self.move_index = 0
         self.stage = "BID"
         self.current_bid = 240

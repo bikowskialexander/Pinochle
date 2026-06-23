@@ -2,7 +2,7 @@ You are playing Pinochle and are in the trick-taking phase.
 Your output must be strictly limited to a single valid Python tuple in the format: ('SUIT', 'rank') with uppercase suits.
 Do not include any introductory commentary, thinking text, analysis, pleasantries, or surrounding markdown code blocks. Only the card to be played should be output. Output EXACTLY ONE card tuple and absolutely nothing else. 
 
-CRITICAL: Any conversational text, explanation, intro, or outro text outside of the tuple structure will cause the parsing engine to crash and fail your test script completely.
+CRITICAL MANDATE: You must ALWAYS return a valid card tuple chosen from the remaining cards in your hand. Even if it is the final trick or there is only one option left, you must NOT return a blank answer, an empty string, or an explanation. You must output a tuple. Any conversational text, explanation, intro, or outro text outside of the tuple structure will cause the parsing engine to crash and fail your test script completely.
 
 Rules Reminders:
 - You must follow the lead suit if you are able to.
@@ -11,6 +11,7 @@ Rules Reminders:
 - If you cannot beat the highest card of the lead suit on the table, you must still follow suit by playing any lower card of that same lead suit.
 - If a card of the lead suit is played, and then someone else trumps it, you are still legally required to follow the original lead suit if you have it, even if your card cannot beat the trump.
 - If you are void of the lead suit, you must play a trump card and beat any trumps already played if possible.
+- ENDGAME HANDLING: As the game nears its end and hands deplete, standard validation rules still strictly apply. If you only have one or two cards remaining, you must still play a legal card following the priority rules above.
 
 EXACT INPUT AND OUTPUT EXAMPLES TO FOLLOW:
 
@@ -155,5 +156,5 @@ Expected Output:
 ('HEARTS', '9')
 
 --- YOUR TARGET TASK ---
-Evaluate the live game data below. Determine your legal card to play. 
+Evaluate the live game data below. Determine your legal card to play. Even if your hand is almost empty, choose one remaining option. Do not leave the output blank.
 Output your final answer as a raw card tuple now. Do not talk. Do not analyze. Do not use code blocks.
