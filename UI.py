@@ -85,8 +85,9 @@ class PinochleUI:
         self.clickable_rects = [] 
         self._pending_user_click = None
         
-        # Bidding Phase Variable Tracking
+        # Phase Variable Tracking
         self.latest_bid_action = None
+        self.latest_trump_action = None
 
     def sleep(self, seconds):
         """Pauses execution for 'seconds' while keeping the window responsive."""
@@ -103,16 +104,27 @@ class PinochleUI:
         return None
 
     def get_user_bidding_choice(self, current_bid) -> str:
-        """
-        Enters a blocking game loop that keeps rendering until the user clicks 
-        either the Bid or Pass button. Returns the choice string.
-        """
+        """Enters a blocking game loop until a Bid or Pass button is clicked."""
         self.latest_bid_action = None
         while self.latest_bid_action is None:
             self.render(current_bid=current_bid)
         
         action = self.latest_bid_action
         self.latest_bid_action = None
+        return action
+
+    def get_user_trump_choice(self) -> str:
+        """
+        Enters a blocking game loop that keeps rendering until the user clicks 
+        one of the four trump suit buttons. Returns the uppercase suit string.
+        """
+        self.latest_trump_action = None
+        while self.latest_trump_action is None:
+            # Pass a flag to indicate we want the trump panel drawn instead of tricks/bids
+            self.render(show_trump_panel=True)
+            
+        action = self.latest_trump_action
+        self.latest_trump_action = None
         return action
 
     def set_player_names(self, names_dict):
@@ -188,37 +200,65 @@ class PinochleUI:
             next_legal_bid = "250"
 
         cx, cy = self.screen_w // 2, self.screen_h // 2
-        
-        # Dimensions
         btn_w = int(180 * self.scale)
         btn_h = int(60 * self.scale)
         gap = int(20 * self.scale)
         
-        # Positions: Pass on left, Bid on right
         pass_rect = pygame.Rect(cx - btn_w - gap // 2, cy - btn_h // 2, btn_w, btn_h)
         bid_rect = pygame.Rect(cx + gap // 2, cy - btn_h // 2, btn_w, btn_h)
-        
         mouse_pos = pygame.mouse.get_pos()
 
-        # --- Draw Pass Button ---
+        # Pass Button
         pass_bg = HOVER_COLOR if pass_rect.collidepoint(mouse_pos) else BUTTON_BG
         pygame.draw.rect(self.screen, pass_bg, pass_rect, border_radius=10)
         pygame.draw.rect(self.screen, TEXT_BLACK, pass_rect, 2 if pass_bg == BUTTON_BG else 4, border_radius=10)
-        
         pass_surf = self.font_main.render("PASS", True, TEXT_RED)
-        pass_rect_center = pass_surf.get_rect(center=pass_rect.center)
-        self.screen.blit(pass_surf, pass_rect_center)
+        self.screen.blit(pass_surf, pass_surf.get_rect(center=pass_rect.center))
         self.clickable_rects.append((pass_rect, "BID_ACTION:PASS"))
 
-        # --- Draw Bid Button ---
+        # Bid Button
         bid_bg = HOVER_COLOR if bid_rect.collidepoint(mouse_pos) else BUTTON_BG
         pygame.draw.rect(self.screen, bid_bg, bid_rect, border_radius=10)
         pygame.draw.rect(self.screen, TEXT_BLACK, bid_rect, 2 if bid_bg == BUTTON_BG else 4, border_radius=10)
-        
         bid_surf = self.font_main.render(f"BID: {next_legal_bid}", True, TEXT_BLACK)
-        bid_rect_center = bid_surf.get_rect(center=bid_rect.center)
-        self.screen.blit(bid_surf, bid_rect_center)
+        self.screen.blit(bid_surf, bid_surf.get_rect(center=bid_rect.center))
         self.clickable_rects.append((bid_rect, f"BID_ACTION:{next_legal_bid}"))
+
+    def display_trump_panel(self):
+        """Creates a row of 4 distinct high-contrast buttons to select the Trump suit."""
+        cx, cy = self.screen_w // 2, self.screen_h // 2
+        
+        btn_w = int(110 * self.scale)
+        btn_h = int(65 * self.scale)
+        gap = int(15 * self.scale)
+        
+        # Calculate total width to keep the 4-button panel perfectly centered
+        total_w = (4 * btn_w) + (3 * gap)
+        start_x = cx - total_w // 2
+        y_pos = cy - btn_h // 2
+        
+        mouse_pos = pygame.mouse.get_pos()
+        suits_ordered = ['SPADES', 'HEARTS', 'CLUBS', 'DIAMONDS']
+
+        for i, suit_name in enumerate(suits_ordered):
+            x_pos = start_x + i * (btn_w + gap)
+            rect = pygame.Rect(x_pos, y_pos, btn_w, btn_h)
+            
+            bg_color = HOVER_COLOR if rect.collidepoint(mouse_pos) else BUTTON_BG
+            thick = 4 if rect.collidepoint(mouse_pos) else 2
+            
+            pygame.draw.rect(self.screen, bg_color, rect, border_radius=10)
+            pygame.draw.rect(self.screen, TEXT_BLACK, rect, thick, border_radius=10)
+            
+            # Draw specific suit text and symbol configurations
+            suit_lower = suit_name.lower()
+            symbol = SUIT_SYMBOLS.get(suit_lower, '')
+            color = SUIT_COLORS.get(suit_lower, TEXT_BLACK)
+            
+            label_surf = self.font_main.render(f"{symbol} {suit_name[:3]}", True, color)
+            self.screen.blit(label_surf, label_surf.get_rect(center=rect.center))
+            
+            self.clickable_rects.append((rect, f"TRUMP_ACTION:{suit_name}"))
 
     # --- DRAWING LOGIC ---
 
@@ -331,7 +371,7 @@ class PinochleUI:
         east_rect = east_rotated.get_rect(center=(self.screen_w - side_margin_center, self.screen_h // 2))
         self.screen.blit(east_rotated, east_rect)
 
-    def _draw_scene(self, current_bid=None):
+    def _draw_scene(self, current_bid=None, show_trump_panel=False):
         self.screen.fill(BG_COLOR)
         self.clickable_rects = [] 
         self.draw_labels()
@@ -340,14 +380,16 @@ class PinochleUI:
         self._draw_hand_grid('West', is_left_side=True)
         self._draw_hand_grid('East', is_left_side=False)
         
-        if current_bid is not None:
+        if show_trump_panel:
+            self.display_trump_panel()
+        elif current_bid is not None:
             self.display_bidding_panel(current_bid)
         else:
             self._draw_center_trick()
             
         pygame.display.flip()
 
-    def render(self, current_bid=None):
+    def render(self, current_bid=None, show_trump_panel=False):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit(); sys.exit()
@@ -359,11 +401,46 @@ class PinochleUI:
                 mouse_pos = event.pos
                 for rect, identity in self.clickable_rects:
                     if rect.collidepoint(mouse_pos):
-                        if isinstance(identity, str) and identity.startswith("BID_ACTION:"):
-                            self.latest_bid_action = identity.split(":")[1]
+                        if isinstance(identity, str):
+                            if identity.startswith("BID_ACTION:"):
+                                self.latest_bid_action = identity.split(":")[1]
+                            elif identity.startswith("TRUMP_ACTION:"):
+                                self.latest_trump_action = identity.split(":")[1]
                         else:
                             self._pending_user_click = identity
                         break
 
-        self._draw_scene(current_bid)
+        self._draw_scene(current_bid, show_trump_panel)
         self.clock.tick(30)
+
+# --- TEST BLOCK ---
+if __name__ == "__main__":
+    game = PinochleUI()
+
+    game.set_player_names({
+        'North': 'AI_North', 'South': 'user', 'East': 'AI_East', 'West': 'AI_West'
+    })
+
+    full_hands = [
+        { 'spades': ['A', '10', 'K'], 'hearts': ['A', '10', 'K'], 'clubs': ['A', '10', 'K'], 'diamonds': ['A', '10', 'K'] },
+        { 'spades': ['A', 'A', '10', '10', 'K', 'K', 'Q', 'Q', 'J', 'J'], 'diamonds': ['A', '10'], 'hearts': [], 'clubs': [] },
+        { 'clubs': ['Q', 'Q', 'J', 'J', '9', '9'], 'hearts': ['Q', 'Q', 'J', 'J', '9', '9'], 'spades': [], 'diamonds': [] },
+        { 'diamonds': ['Q', 'Q', 'J', 'J', '9', '9'], 'spades': ['9', '9'], 'clubs': ['A', '10'], 'hearts': ['A', '10'] }
+    ]
+    game.update_hands(full_hands)
+
+    print("--- 1. Testing Blocking Bidding Panel ---")
+    chosen_bid = game.get_user_bidding_choice(current_bid=240)
+    print(f"MAIN RUNTIME CONTINUED: Bid selection -> {chosen_bid}\n")
+    
+    print("--- 2. Testing Blocking Trump Selection Panel ---")
+    chosen_trump = game.get_user_trump_choice()
+    print(f"MAIN RUNTIME CONTINUED: Declared Trump Suit -> {chosen_trump}\n")
+    
+    print("Now polling standard game loops for card plays...")
+    while True:
+        game.render()
+        user_card = game.get_latest_from_user()
+        if user_card:
+            print(f"GAME LOGIC: Card Play Detected -> {user_card}")
+            game.play_card('South', user_card)
