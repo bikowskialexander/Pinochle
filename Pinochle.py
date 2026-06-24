@@ -298,7 +298,7 @@ class Pinochle:
                 self.ui.play_card(player_name, trick)
                 self.ui.update_hands(self.hands)
                 self.ui.render()
-                self.ui.sleep(2.5)
+                self.ui.sleep(1.5)
 
         # Update Turn Order
         if attempts < ATTEMPTS_TILL_FAILURE:
@@ -309,7 +309,7 @@ class Pinochle:
 
         # Sleep at very end of trick
         self.ui.render()
-        self.ui.sleep(5)
+        self.ui.sleep(1.5)
 
     def run(self):
         self.ui.render()
