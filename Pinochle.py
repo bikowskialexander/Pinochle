@@ -32,10 +32,11 @@ class Pinochle:
         self.files = open("logs/log.txt", 'w')
 
         for i in range(4):
-            try:
+            if self.players[i].ui == 1:
                 self.players[i].ui = self.ui 
-            except AttributeError:
-                pass 
+                direction = index_to_Direction_name(i)
+                self.ui.is_user[direction] = True
+                self.ui.user_direction = direction
 
         self.setup()
 

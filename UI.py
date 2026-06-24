@@ -21,12 +21,10 @@ TEXT_BLACK = (0, 0, 0)
 TEXT_RED = (210, 0, 0)
 MELD_COLOR = (255, 215, 0)
 SELECTION_COLOR = (0, 255, 0)
-HOVER_COLOR = (144, 238, 144)
+HOVER_COLOR = (200, 245, 200) 
+BUTTON_BG = (230, 230, 230)    
 
-HOVER_COLOR = (200, 245, 200) # Slightly deeper hover green for distinct contrast
-BUTTON_BG = (230, 230, 230)    # Light gray baseline so it stands out from card
-
-# Sorting / Display Order - Internally lowercase for UI processing mapping
+# Sorting / Display Order
 RANK_ORDER = {'A': 5, '10': 4, 'K': 3, 'Q': 2, 'J': 1, '9': 0}
 DISPLAY_SUIT_ORDER = ['spades', 'hearts', 'clubs', 'diamonds']
 
@@ -35,7 +33,6 @@ SUIT_COLORS = {'spades': TEXT_BLACK, 'hearts': TEXT_RED, 'clubs': TEXT_BLACK, 'd
 
 def index_to_Direction_name(index : int) -> str:
     return ['North', 'East', 'South', 'West'][index]
-
 
 class PinochleUI:
     def __init__(self):
@@ -74,6 +71,8 @@ class PinochleUI:
         self.hands = {'North': [], 'South': [], 'East': [], 'West': []}
         self.center_cards = {}
         self.meld_highlights = {'North': set(), 'South': set(), 'East': set(), 'West': set()}
+        
+        # FIX: Tracks selected integer indices instead of card values to distinguish duplicates
         self.green_highlights = {'North': set(), 'South': set(), 'East': set(), 'West': set()}
         self.scores = {'North': 0, 'South': 0, 'East': 0, 'West': 0}
         
@@ -88,6 +87,30 @@ class PinochleUI:
         # Phase Variable Tracking
         self.latest_bid_action = None
         self.latest_trump_action = None
+        self.passing_confirmed = False
+        self.is_passing_phase = False
+
+        # For user
+        self.is_user = {'North':False, 'South':False, 'East':False, 'West':False}
+        self.user_direction = None
+
+    def _is_player_user(self, player_key) -> bool:
+        if self.user_direction == player_key:
+            return True
+        if isinstance(self.user_direction, int):
+            if index_to_Direction_name(self.user_direction) == player_key:
+                return True
+        if self.is_user.get(player_key) == True:
+            return True
+        if self.player_names.get(player_key) == 'user':
+            return True
+        return False
+
+    def _get_active_user_key(self) -> str:
+        for k in ['South', 'North', 'East', 'West']:
+            if self._is_player_user(k):
+                return k
+        return 'South'
 
     def sleep(self, seconds):
         """Pauses execution for 'seconds' while keeping the window responsive."""
@@ -104,8 +127,10 @@ class PinochleUI:
         return None
 
     def get_user_bidding_choice(self, current_bid) -> str:
-        """Enters a blocking game loop until a Bid or Pass button is clicked."""
+        """FORCE FREEZE LOOP: Halts execution until a bidding token selection returns."""
         self.latest_bid_action = None
+        self._pending_user_click = None 
+        
         while self.latest_bid_action is None:
             self.render(current_bid=current_bid)
         
@@ -114,18 +139,34 @@ class PinochleUI:
         return action
 
     def get_user_trump_choice(self) -> str:
-        """
-        Enters a blocking game loop that keeps rendering until the user clicks 
-        one of the four trump suit buttons. Returns the uppercase suit string.
-        """
+        """FORCE FREEZE LOOP: Halts execution until a suit selection returns."""
         self.latest_trump_action = None
+        self._pending_user_click = None 
+        
         while self.latest_trump_action is None:
-            # Pass a flag to indicate we want the trump panel drawn instead of tricks/bids
             self.render(show_trump_panel=True)
             
         action = self.latest_trump_action
         self.latest_trump_action = None
         return action
+
+    def get_user_passing_choice(self) -> list:
+        """FORCE FREEZE LOOP: Halts execution until exactly 4 unique indices are confirmed."""
+        user_key = self._get_active_user_key()
+        self.green_highlights[user_key] = set()
+        self.passing_confirmed = False
+        self.is_passing_phase = True
+        self._pending_user_click = None
+
+        while not self.passing_confirmed:
+            self.render(show_passing_panel=True)
+
+        self.is_passing_phase = False
+        
+        # FIX: Map selected indices back to original card values for backend compatibility
+        chosen_cards = [self.hands[user_key][idx] for idx in self.green_highlights[user_key]]
+        self.green_highlights[user_key] = set()
+        return chosen_cards
 
     def set_player_names(self, names_dict):
         for pos, name in names_dict.items():
@@ -150,18 +191,18 @@ class PinochleUI:
     def play_card(self, player, card_tuple):
         suit = str(card_tuple[0]).upper()
         rank = str(card_tuple[1]).upper()
-        target_card = (suit, rank)
 
         if player in self.hands:
-            if target_card in self.hands[player]:
-                self.hands[player].remove(target_card)
+            for item in list(self.hands[player]):
+                if str(item[0]).upper() == suit and str(item[1]).upper() == rank:
+                    self.hands[player].remove(item)
+                    break
             
-            self.center_cards[player] = target_card
+            self.center_cards[player] = (suit, rank)
             
-            if target_card in self.meld_highlights.get(player, []):
-                self.meld_highlights[player].remove(target_card)
-            if target_card in self.green_highlights.get(player, []):
-                self.green_highlights[player].remove(target_card)
+            if player in self.meld_highlights:
+                self.meld_highlights[player] = set()
+            self.green_highlights[player] = set()
             
     def display_meld(self, player, card_list, points):
         if player not in self.meld_highlights: return
@@ -177,16 +218,24 @@ class PinochleUI:
             self.scores[player] = 0
 
     def highlight_card(self, player, card_tuple):
-        input_suit, input_rank = card_tuple
-        target = (input_suit.lower(), input_rank)
-        if player in self.green_highlights:
-            self.green_highlights[player].add(target)
+        suit = str(card_tuple[0]).upper()
+        rank = str(card_tuple[1]).upper()
+        if player in self.hands:
+            for i, card in enumerate(self.hands[player]):
+                if str(card[0]).upper() == suit and str(card[1]).upper() == rank:
+                    if i not in self.green_highlights[player]:
+                        self.green_highlights[player].add(i)
+                        break
 
     def unhighlight_card(self, player, card_tuple):
-        input_suit, input_rank = card_tuple
-        target = (input_suit.lower(), input_rank)
-        if player in self.green_highlights and target in self.green_highlights[player]:
-            self.green_highlights[player].remove(target)
+        suit = str(card_tuple[0]).upper()
+        rank = str(card_tuple[1]).upper()
+        if player in self.hands:
+            for i, card in enumerate(self.hands[player]):
+                if str(card[0]).upper() == suit and str(card[1]).upper() == rank:
+                    if i in self.green_highlights[player]:
+                        self.green_highlights[player].remove(i)
+                        break
 
     def clear_table(self):
         self.center_cards = {}
@@ -232,7 +281,6 @@ class PinochleUI:
         btn_h = int(65 * self.scale)
         gap = int(15 * self.scale)
         
-        # Calculate total width to keep the 4-button panel perfectly centered
         total_w = (4 * btn_w) + (3 * gap)
         start_x = cx - total_w // 2
         y_pos = cy - btn_h // 2
@@ -250,7 +298,6 @@ class PinochleUI:
             pygame.draw.rect(self.screen, bg_color, rect, border_radius=10)
             pygame.draw.rect(self.screen, TEXT_BLACK, rect, thick, border_radius=10)
             
-            # Draw specific suit text and symbol configurations
             suit_lower = suit_name.lower()
             symbol = SUIT_SYMBOLS.get(suit_lower, '')
             color = SUIT_COLORS.get(suit_lower, TEXT_BLACK)
@@ -260,18 +307,51 @@ class PinochleUI:
             
             self.clickable_rects.append((rect, f"TRUMP_ACTION:{suit_name}"))
 
+    def display_passing_panel(self):
+        """Displays interactive instructions and confirmation button in the center."""
+        cx, cy = self.screen_w // 2, self.screen_h // 2
+        user_key = self._get_active_user_key()
+        selected_count = len(self.green_highlights[user_key])
+        
+        guide_text = f"Select 4 Cards to Pass ({selected_count}/4)"
+        guide_surf = self.font_main.render(guide_text, True, CARD_COLOR)
+        guide_rect = guide_surf.get_rect(center=(cx, cy - int(50 * self.scale)))
+        self.screen.blit(guide_surf, guide_rect)
+        
+        if selected_count == 4:
+            btn_w = int(220 * self.scale)
+            btn_h = int(60 * self.scale)
+            button_rect = pygame.Rect(cx - btn_w // 2, cy - btn_h // 2 + int(20 * self.scale), btn_w, btn_h)
+            
+            mouse_pos = pygame.mouse.get_pos()
+            bg_color = HOVER_COLOR if button_rect.collidepoint(mouse_pos) else BUTTON_BG
+            thick = 4 if button_rect.collidepoint(mouse_pos) else 2
+            
+            pygame.draw.rect(self.screen, bg_color, button_rect, border_radius=10)
+            pygame.draw.rect(self.screen, TEXT_BLACK, button_rect, thick, border_radius=10)
+            
+            label_surf = self.font_main.render("CONFIRM PASS", True, TEXT_BLACK)
+            self.screen.blit(label_surf, label_surf.get_rect(center=button_rect.center))
+            
+            self.clickable_rects.append((button_rect, "PASS_ACTION:CONFIRM"))
+
     # --- DRAWING LOGIC ---
 
     def _draw_card(self, x, y, rank, suit, border_color=(0, 0, 0), border_thickness=2):
         suit = suit.lower()
         card_rect = pygame.Rect(x, y, self.card_w, self.card_h)
         pygame.draw.rect(self.screen, CARD_COLOR, card_rect, border_radius=5)
-        pygame.draw.rect(self.screen, border_color, card_rect, border_thickness, border_radius=5)
+        
+        if border_thickness > 2:
+            outline_rect = card_rect.inflate(border_thickness - 2, border_thickness - 2)
+            pygame.draw.rect(self.screen, border_color, outline_rect, border_thickness, border_radius=5)
+        else:
+            pygame.draw.rect(self.screen, border_color, card_rect, border_thickness, border_radius=5)
 
         color = SUIT_COLORS.get(suit, (0,0,0))
         symbol = SUIT_SYMBOLS.get(suit, '?')
         
-        rank_surf = self.font_main.render(rank, True, color)
+        rank_surf = self.font_main.render(str(rank), True, color)
         offset_x = int(5 * self.scale)
         offset_y_rank = int(2 * self.scale)
         self.screen.blit(rank_surf, (x + offset_x, y + offset_y_rank))
@@ -282,9 +362,18 @@ class PinochleUI:
         
         return card_rect
 
-    def _get_border_style(self, player, card_tuple):
-        if card_tuple in self.green_highlights[player]: return SELECTION_COLOR, 5
-        if card_tuple in self.meld_highlights[player]: return MELD_COLOR, 5
+    def _get_border_style(self, player, idx, card_tuple):
+        # FIX: Dynamic Index checks handle passing states cleanly without value collisions
+        if idx in self.green_highlights[player]:
+            return SELECTION_COLOR, 5
+
+        suit = str(card_tuple[0]).upper()
+        rank = str(card_tuple[1]).upper()
+        
+        for s in [suit, suit.lower()]:
+            for r in [rank, rank.lower(), int(rank) if rank.isdigit() else rank]:
+                if (s, r) in self.meld_highlights[player]:
+                    return MELD_COLOR, 5
         return (0, 0, 0), 2
 
     def _draw_hand_horizontal(self, player_key, start_y):
@@ -294,23 +383,29 @@ class PinochleUI:
         total_width = (len(cards) * (self.card_w + self.margin)) - self.margin
         start_x = (self.screen_w - total_width) // 2
 
-        is_user = self.player_names[player_key] == 'user'
+        is_interactive = self._is_player_user(player_key)
 
         for i, (suit, rank) in enumerate(cards):
             x = start_x + i * (self.card_w + self.margin)
-            color, thick = self._get_border_style(player_key, (suit, rank))
+            color, thick = self._get_border_style(player_key, i, (suit, rank))
             
-            mouse_pos = pygame.mouse.get_pos()
-            rect = pygame.Rect(x, start_y, self.card_w, self.card_h)
-            
-            if is_user and rect.collidepoint(mouse_pos):
-                color = HOVER_COLOR
-                thick = 4
+            card_y = start_y
+            if color == SELECTION_COLOR:
+                card_y -= int(15 * self.scale)
 
-            card_rect = self._draw_card(x, start_y, rank, suit, color, thick)
+            mouse_pos = pygame.mouse.get_pos()
+            rect = pygame.Rect(x, card_y, self.card_w, self.card_h)
             
-            if is_user:
-                self.clickable_rects.append((card_rect, (suit.upper(), rank)))
+            if is_interactive and rect.collidepoint(mouse_pos):
+                if color != SELECTION_COLOR:
+                    color = HOVER_COLOR
+                    thick = 4
+
+            card_rect = self._draw_card(x, card_y, rank, suit, color, thick)
+            
+            if is_interactive:
+                # FIX: Send card layout index position directly instead of raw string card data values
+                self.clickable_rects.append((card_rect, (player_key, i)))
 
     def _draw_hand_grid(self, player_key, is_left_side):
         cards = self.hands[player_key]
@@ -326,13 +421,32 @@ class PinochleUI:
         else:
             start_x = self.screen_w - (self.card_w * 2 + self.margin) - self.pad_large
 
+        is_interactive = self._is_player_user(player_key)
+
         for i, (suit, rank) in enumerate(cards):
             row = i // cols
             col = i % cols
             x = start_x + col * (self.card_w + self.margin)
             y = start_y + row * (self.card_h + self.margin)
-            color, thick = self._get_border_style(player_key, (suit, rank))
-            self._draw_card(x, y, rank, suit, color, thick)
+            color, thick = self._get_border_style(player_key, i, (suit, rank))
+            
+            card_x = x
+            if color == SELECTION_COLOR:
+                card_x += int(15 * self.scale) if not is_left_side else -int(15 * self.scale)
+
+            mouse_pos = pygame.mouse.get_pos()
+            rect = pygame.Rect(card_x, y, self.card_w, self.card_h)
+            
+            if is_interactive and rect.collidepoint(mouse_pos):
+                if color != SELECTION_COLOR:
+                    color = HOVER_COLOR
+                    thick = 4
+
+            card_rect = self._draw_card(card_x, y, rank, suit, color, thick)
+            
+            if is_interactive:
+                # FIX: Send card layout index position directly instead of raw string card data values
+                self.clickable_rects.append((card_rect, (player_key, i)))
 
     def _draw_center_trick(self):
         cx, cy = self.screen_w // 2, self.screen_h // 2
@@ -371,7 +485,7 @@ class PinochleUI:
         east_rect = east_rotated.get_rect(center=(self.screen_w - side_margin_center, self.screen_h // 2))
         self.screen.blit(east_rotated, east_rect)
 
-    def _draw_scene(self, current_bid=None, show_trump_panel=False):
+    def _draw_scene(self, current_bid=None, show_trump_panel=False, show_passing_panel=False):
         self.screen.fill(BG_COLOR)
         self.clickable_rects = [] 
         self.draw_labels()
@@ -380,7 +494,9 @@ class PinochleUI:
         self._draw_hand_grid('West', is_left_side=True)
         self._draw_hand_grid('East', is_left_side=False)
         
-        if show_trump_panel:
+        if show_passing_panel:
+            self.display_passing_panel()
+        elif show_trump_panel:
             self.display_trump_panel()
         elif current_bid is not None:
             self.display_bidding_panel(current_bid)
@@ -389,7 +505,7 @@ class PinochleUI:
             
         pygame.display.flip()
 
-    def render(self, current_bid=None, show_trump_panel=False):
+    def render(self, current_bid=None, show_trump_panel=False, show_passing_panel=False):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit(); sys.exit()
@@ -406,41 +522,23 @@ class PinochleUI:
                                 self.latest_bid_action = identity.split(":")[1]
                             elif identity.startswith("TRUMP_ACTION:"):
                                 self.latest_trump_action = identity.split(":")[1]
+                            elif identity.startswith("PASS_ACTION:"):
+                                self.passing_confirmed = True
                         else:
-                            self._pending_user_click = identity
+                            # FIX: Identity tuple unpacks (player_key, array_index) cleanly
+                            seat_key, card_index = identity
+
+                            if self.is_passing_phase:
+                                print("Passing")
+                                if card_index in self.green_highlights[seat_key]:
+                                    self.green_highlights[seat_key].remove(card_index)
+                                else:
+                                    if len(self.green_highlights[seat_key]) < 4:
+                                        self.green_highlights[seat_key].add(card_index)
+                            else:
+                                # Normal gameplay fallback returns baseline tuple back to turn consumer loops
+                                self._pending_user_click = self.hands[seat_key][card_index]
                         break
 
-        self._draw_scene(current_bid, show_trump_panel)
+        self._draw_scene(current_bid, show_trump_panel, show_passing_panel)
         self.clock.tick(30)
-
-# --- TEST BLOCK ---
-if __name__ == "__main__":
-    game = PinochleUI()
-
-    game.set_player_names({
-        'North': 'AI_North', 'South': 'user', 'East': 'AI_East', 'West': 'AI_West'
-    })
-
-    full_hands = [
-        { 'spades': ['A', '10', 'K'], 'hearts': ['A', '10', 'K'], 'clubs': ['A', '10', 'K'], 'diamonds': ['A', '10', 'K'] },
-        { 'spades': ['A', 'A', '10', '10', 'K', 'K', 'Q', 'Q', 'J', 'J'], 'diamonds': ['A', '10'], 'hearts': [], 'clubs': [] },
-        { 'clubs': ['Q', 'Q', 'J', 'J', '9', '9'], 'hearts': ['Q', 'Q', 'J', 'J', '9', '9'], 'spades': [], 'diamonds': [] },
-        { 'diamonds': ['Q', 'Q', 'J', 'J', '9', '9'], 'spades': ['9', '9'], 'clubs': ['A', '10'], 'hearts': ['A', '10'] }
-    ]
-    game.update_hands(full_hands)
-
-    print("--- 1. Testing Blocking Bidding Panel ---")
-    chosen_bid = game.get_user_bidding_choice(current_bid=240)
-    print(f"MAIN RUNTIME CONTINUED: Bid selection -> {chosen_bid}\n")
-    
-    print("--- 2. Testing Blocking Trump Selection Panel ---")
-    chosen_trump = game.get_user_trump_choice()
-    print(f"MAIN RUNTIME CONTINUED: Declared Trump Suit -> {chosen_trump}\n")
-    
-    print("Now polling standard game loops for card plays...")
-    while True:
-        game.render()
-        user_card = game.get_latest_from_user()
-        if user_card:
-            print(f"GAME LOGIC: Card Play Detected -> {user_card}")
-            game.play_card('South', user_card)

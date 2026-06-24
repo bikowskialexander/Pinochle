@@ -14,6 +14,7 @@ class Opponent:
     def __init__(self) -> None:
         self.messages = []
         self._add_system()
+        self.ui = -1
 
     def _add_system(self, system_file_name="Prompts/System.txt"):
         f = open(system_file_name)
