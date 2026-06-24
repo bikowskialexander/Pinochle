@@ -13,11 +13,12 @@ from Opponent import Opponent
 from Ollama_opponent import Ollama_Opponent
 from Multi_Agent_Opponent import Multi_Agent_Opponent
 from Model_Agains_User import Model_Against_User
+from User_Opponenet import User_Opponent
 
 class Pinochle:
 
     def __init__(self) -> None:
-        self.players = [Model_Against_User(), Opponent(), Model_Against_User(), Opponent()]
+        self.players = [User_Opponent(), Opponent(), Opponent(), Opponent()]
         self.move_index = 0
         self.stage = "BID"
         self.current_bid = 240
@@ -29,6 +30,16 @@ class Pinochle:
         self.player_index = 1
 
         self.files = open("logs/log.txt", 'w')
+
+        self.has_user = True
+
+        for i in range(4):
+            if self.players[i].ui == 1:
+                self.players[i].ui = self.ui 
+                direction = index_to_Direction_name(i)
+                self.ui.is_user[direction] = True
+                self.ui.user_direction = direction
+                self.has_user = True
 
         self.setup()
 
@@ -287,6 +298,7 @@ class Pinochle:
                 self.ui.play_card(player_name, trick)
                 self.ui.update_hands(self.hands)
                 self.ui.render()
+                self.ui.sleep(1.5)
 
         # Update Turn Order
         if attempts < ATTEMPTS_TILL_FAILURE:
@@ -294,6 +306,10 @@ class Pinochle:
 
         # Update the number of tricks
         self.tricks_left -= 1
+
+        # Sleep at very end of trick
+        self.ui.render()
+        self.ui.sleep(1.5)
 
     def run(self):
         self.ui.render()
