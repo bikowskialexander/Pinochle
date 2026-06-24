@@ -21,6 +21,7 @@ TEXT_BLACK = (0, 0, 0)
 TEXT_RED = (210, 0, 0)
 MELD_COLOR = (255, 215, 0)
 SELECTION_COLOR = (0, 255, 0)
+LEGAL_PLAY_COLOR = (255, 255, 0) # High-contrast yellow for trick play options
 HOVER_COLOR = (200, 245, 200) 
 BUTTON_BG = (230, 230, 230)    
 
@@ -72,7 +73,7 @@ class PinochleUI:
         self.center_cards = {}
         self.meld_highlights = {'North': set(), 'South': set(), 'East': set(), 'West': set()}
         
-        # FIX: Tracks selected integer indices instead of card values to distinguish duplicates
+        # FIX: Tracks selected integer index loops directly to isolate duplicates safely
         self.green_highlights = {'North': set(), 'South': set(), 'East': set(), 'West': set()}
         self.scores = {'North': 0, 'South': 0, 'East': 0, 'West': 0}
         
@@ -89,28 +90,13 @@ class PinochleUI:
         self.latest_trump_action = None
         self.passing_confirmed = False
         self.is_passing_phase = False
+        self.is_trick_phase = False
+        self.legal_trick_cards = set()
+        self.chosen_trick_card = None
 
         # For user
         self.is_user = {'North':False, 'South':False, 'East':False, 'West':False}
         self.user_direction = None
-
-    def _is_player_user(self, player_key) -> bool:
-        if self.user_direction == player_key:
-            return True
-        if isinstance(self.user_direction, int):
-            if index_to_Direction_name(self.user_direction) == player_key:
-                return True
-        if self.is_user.get(player_key) == True:
-            return True
-        if self.player_names.get(player_key) == 'user':
-            return True
-        return False
-
-    def _get_active_user_key(self) -> str:
-        for k in ['South', 'North', 'East', 'West']:
-            if self._is_player_user(k):
-                return k
-        return 'South'
 
     def sleep(self, seconds):
         """Pauses execution for 'seconds' while keeping the window responsive."""
@@ -127,7 +113,7 @@ class PinochleUI:
         return None
 
     def get_user_bidding_choice(self, current_bid) -> str:
-        """FORCE FREEZE LOOP: Halts execution until a bidding token selection returns."""
+        """FORCE FREEZE LOOP: Halts execution until a bidding choice is returned."""
         self.latest_bid_action = None
         self._pending_user_click = None 
         
@@ -139,7 +125,7 @@ class PinochleUI:
         return action
 
     def get_user_trump_choice(self) -> str:
-        """FORCE FREEZE LOOP: Halts execution until a suit selection returns."""
+        """FORCE FREEZE LOOP: Halts execution until a trump suit button is selected."""
         self.latest_trump_action = None
         self._pending_user_click = None 
         
@@ -151,9 +137,8 @@ class PinochleUI:
         return action
 
     def get_user_passing_choice(self) -> list:
-        """FORCE FREEZE LOOP: Halts execution until exactly 4 unique indices are confirmed."""
-        user_key = self._get_active_user_key()
-        self.green_highlights[user_key] = set()
+        """FORCE FREEZE LOOP: Maps uniquely selected indices back into master card structures."""
+        self.green_highlights[self.user_direction] = set()
         self.passing_confirmed = False
         self.is_passing_phase = True
         self._pending_user_click = None
@@ -163,10 +148,27 @@ class PinochleUI:
 
         self.is_passing_phase = False
         
-        # FIX: Map selected indices back to original card values for backend compatibility
-        chosen_cards = [self.hands[user_key][idx] for idx in self.green_highlights[user_key]]
-        self.green_highlights[user_key] = set()
+        # FIX: Re-map selected layout index values back to original objects for external engine loops
+        chosen_cards = [self.hands[self.user_direction][idx] for idx in self.green_highlights[self.user_direction]]
+        self.green_highlights[self.user_direction] = set()
         return chosen_cards
+
+    def get_user_trick_choice(self, legal_cards) -> tuple:
+        """FORCE FREEZE LOOP: Highlights valid options yellow and waits for a legal selection."""
+        if self.user_direction is None:
+            return legal_cards[0] if legal_cards else None
+
+        self.legal_trick_cards = {(str(suit).upper(), str(rank).upper()) for suit, rank in legal_cards}
+        self.chosen_trick_card = None
+        self.is_trick_phase = True
+        self._pending_user_click = None
+
+        while self.chosen_trick_card is None:
+            self.render()
+
+        self.is_trick_phase = False
+        self.legal_trick_cards = set()
+        return self.chosen_trick_card
 
     def set_player_names(self, names_dict):
         for pos, name in names_dict.items():
@@ -191,17 +193,16 @@ class PinochleUI:
     def play_card(self, player, card_tuple):
         suit = str(card_tuple[0]).upper()
         rank = str(card_tuple[1]).upper()
+        target_card = (suit, rank)
 
         if player in self.hands:
-            for item in list(self.hands[player]):
-                if str(item[0]).upper() == suit and str(item[1]).upper() == rank:
-                    self.hands[player].remove(item)
-                    break
+            if target_card in self.hands[player]:
+                self.hands[player].remove(target_card)
             
-            self.center_cards[player] = (suit, rank)
+            self.center_cards[player] = target_card
             
-            if player in self.meld_highlights:
-                self.meld_highlights[player] = set()
+            if target_card in self.meld_highlights.get(player, []):
+                self.meld_highlights[player].remove(target_card)
             self.green_highlights[player] = set()
             
     def display_meld(self, player, card_list, points):
@@ -308,10 +309,9 @@ class PinochleUI:
             self.clickable_rects.append((rect, f"TRUMP_ACTION:{suit_name}"))
 
     def display_passing_panel(self):
-        """Displays interactive instructions and confirmation button in the center."""
+        """Displays selection count context instructions and a confirmation button in the center."""
         cx, cy = self.screen_w // 2, self.screen_h // 2
-        user_key = self._get_active_user_key()
-        selected_count = len(self.green_highlights[user_key])
+        selected_count = len(self.green_highlights[self.user_direction])
         
         guide_text = f"Select 4 Cards to Pass ({selected_count}/4)"
         guide_surf = self.font_main.render(guide_text, True, CARD_COLOR)
@@ -363,17 +363,21 @@ class PinochleUI:
         return card_rect
 
     def _get_border_style(self, player, idx, card_tuple):
-        # FIX: Dynamic Index checks handle passing states cleanly without value collisions
-        if idx in self.green_highlights[player]:
+        # FIX: Explicit position index validation allows selection flags to map without duplicate bleeding
+        if idx in self.green_highlights[player]: 
             return SELECTION_COLOR, 5
-
+            
         suit = str(card_tuple[0]).upper()
         rank = str(card_tuple[1]).upper()
-        
-        for s in [suit, suit.lower()]:
-            for r in [rank, rank.lower(), int(rank) if rank.isdigit() else rank]:
-                if (s, r) in self.meld_highlights[player]:
-                    return MELD_COLOR, 5
+        check_tuple = (suit, rank)
+        check_tuple_lower = (suit.lower(), rank)
+
+        if self.is_trick_phase and player == self.user_direction:
+            if check_tuple in self.legal_trick_cards or check_tuple_lower in self.legal_trick_cards:
+                return LEGAL_PLAY_COLOR, 5
+
+        if check_tuple in self.meld_highlights[player] or check_tuple_lower in self.meld_highlights[player]: 
+            return MELD_COLOR, 5
         return (0, 0, 0), 2
 
     def _draw_hand_horizontal(self, player_key, start_y):
@@ -383,7 +387,7 @@ class PinochleUI:
         total_width = (len(cards) * (self.card_w + self.margin)) - self.margin
         start_x = (self.screen_w - total_width) // 2
 
-        is_interactive = self._is_player_user(player_key)
+        is_user = (self.user_direction is not None and player_key == self.user_direction)
 
         for i, (suit, rank) in enumerate(cards):
             x = start_x + i * (self.card_w + self.margin)
@@ -396,15 +400,15 @@ class PinochleUI:
             mouse_pos = pygame.mouse.get_pos()
             rect = pygame.Rect(x, card_y, self.card_w, self.card_h)
             
-            if is_interactive and rect.collidepoint(mouse_pos):
-                if color != SELECTION_COLOR:
+            if is_user and rect.collidepoint(mouse_pos):
+                if color != SELECTION_COLOR and color != LEGAL_PLAY_COLOR:
                     color = HOVER_COLOR
                     thick = 4
 
             card_rect = self._draw_card(x, card_y, rank, suit, color, thick)
             
-            if is_interactive:
-                # FIX: Send card layout index position directly instead of raw string card data values
+            if is_user:
+                # FIX: Send the exact card index position integer over to clickable registry configurations
                 self.clickable_rects.append((card_rect, (player_key, i)))
 
     def _draw_hand_grid(self, player_key, is_left_side):
@@ -421,7 +425,7 @@ class PinochleUI:
         else:
             start_x = self.screen_w - (self.card_w * 2 + self.margin) - self.pad_large
 
-        is_interactive = self._is_player_user(player_key)
+        is_user = (self.user_direction is not None and player_key == self.user_direction)
 
         for i, (suit, rank) in enumerate(cards):
             row = i // cols
@@ -437,15 +441,15 @@ class PinochleUI:
             mouse_pos = pygame.mouse.get_pos()
             rect = pygame.Rect(card_x, y, self.card_w, self.card_h)
             
-            if is_interactive and rect.collidepoint(mouse_pos):
-                if color != SELECTION_COLOR:
+            if is_user and rect.collidepoint(mouse_pos):
+                if color != SELECTION_COLOR and color != LEGAL_PLAY_COLOR:
                     color = HOVER_COLOR
                     thick = 4
 
             card_rect = self._draw_card(card_x, y, rank, suit, color, thick)
             
-            if is_interactive:
-                # FIX: Send card layout index position directly instead of raw string card data values
+            if is_user:
+                # FIX: Send the exact card index position integer over to clickable registry configurations
                 self.clickable_rects.append((card_rect, (player_key, i)))
 
     def _draw_center_trick(self):
@@ -525,8 +529,12 @@ class PinochleUI:
                             elif identity.startswith("PASS_ACTION:"):
                                 self.passing_confirmed = True
                         else:
-                            # FIX: Identity tuple unpacks (player_key, array_index) cleanly
+                            # FIX: Unpack the array position index inside the event click detector loop
                             seat_key, card_index = identity
+                            suit_str, rank_str = self.hands[seat_key][card_index]
+                            
+                            normalized_card = (suit_str, rank_str)
+                            match_key = (str(suit_str).upper(), str(rank_str).upper())
 
                             if self.is_passing_phase:
                                 print("Passing")
@@ -535,9 +543,11 @@ class PinochleUI:
                                 else:
                                     if len(self.green_highlights[seat_key]) < 4:
                                         self.green_highlights[seat_key].add(card_index)
+                            elif self.is_trick_phase:
+                                if seat_key == self.user_direction and match_key in self.legal_trick_cards:
+                                    self.chosen_trick_card = normalized_card
                             else:
-                                # Normal gameplay fallback returns baseline tuple back to turn consumer loops
-                                self._pending_user_click = self.hands[seat_key][card_index]
+                                self._pending_user_click = normalized_card
                         break
 
         self._draw_scene(current_bid, show_trump_panel, show_passing_panel)

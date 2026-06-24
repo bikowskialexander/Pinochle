@@ -2,6 +2,8 @@
 from UI import index_to_Direction_name
 from Opponent import Opponent
 
+from checks import check_trick
+
 class User_Opponent(Opponent):
     def __init__(self):
         super().__init__()
@@ -14,11 +16,19 @@ class User_Opponent(Opponent):
         return self.ui.get_user_trump_choice()
     
     def get_pass(self, hand, trumps, additional_message=""):
-        print(self.ui.get_user_passing_choice())
-        return super().get_pass(hand, trumps, additional_message)
+        results = self.ui.get_user_passing_choice()
+        return str(results)
 
     def get_tricks(self, hand, trumps, played, additional_message=""):
-        return super().get_tricks(hand, trumps, played, additional_message)
+        available = []
+        for suit in hand.keys():
+            if suit != 'len':
+                for rank in hand[suit]:
+                    card = (suit, rank)
+                    if check_trick(played, hand, card, trumps):
+                        available.append(card)
+        result = self.ui.get_user_trick_choice(available)
+        return str(result)
 
 
 
