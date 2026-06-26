@@ -18,7 +18,7 @@ from User_Opponenet import User_Opponent
 class Pinochle:
 
     def __init__(self) -> None:
-        self.players = [User_Opponent(), Opponent(), Opponent(), Opponent()]
+        self.players = [Opponent(), Opponent(), Opponent(), Opponent()]
         self.move_index = 0
         self.stage = "BID"
         self.current_bid = 240
@@ -28,10 +28,14 @@ class Pinochle:
         self.ui = PinochleUI()
 
         self.player_index = 1
+        self.winner = -1
 
         self.files = open("logs/log.txt", 'w')
 
         self.has_user = True
+
+        # Timing
+        self.trick_sleep_time = 1.5
 
         for i in range(4):
             if self.players[i].ui == 1:
@@ -44,13 +48,22 @@ class Pinochle:
         self.setup()
 
     def setup(self):
+        self.hands = []
         deck = Deck.generate_ordered_deck()
         for i in range(4):
             self.hands.append(Deck.draw_hand(deck, 12))
         self.ui.update_hands(self.hands)
-        self.winner = -1
         self.stage = "BID"
         self.tricks_left = 12 
+        self.current_bid = 240
+
+        # Reset scoreboard
+        self._reset_scoreboard()
+
+    def _reset_scoreboard(self):
+        for i in range(4):
+            direction = index_to_Direction_name(i)
+            self.ui.set_score(direction, 0)
 
     def define_order(self):
         self.order = []
@@ -71,6 +84,8 @@ class Pinochle:
             last_winner = self.winner
             self.setup()
             return last_winner
+        if self.round_over():
+            self.setup()
         self.files.close()
         self.files = open("logs/log.txt", 'a')
         print(self.stage)
@@ -221,13 +236,21 @@ class Pinochle:
                 self.point_values[1] += self.meld_value(meld)
 
     def game_over(self):
-        if self.winner != -1:
-            return self.winner
-        elif self.point_values[0] >= 250:
-            return 0
-        elif self.point_values[1] >= 250:
-            return 1
+        if self.round_over():
+            if self.winner != -1:
+                return self.winner
+            elif self.point_values[0] >= 250:
+                return 0
+            elif self.point_values[1] >= 250:
+                return 1
         return -1
+    
+    def round_over(self):
+        for i in range(4):
+            for suit in SUITS:
+                if len(self.hands[i][suit]) > 0:
+                    return False
+        return True
     
     def _set_move_index_to_winner_of_trick(self):
 
@@ -298,7 +321,7 @@ class Pinochle:
                 self.ui.play_card(player_name, trick)
                 self.ui.update_hands(self.hands)
                 self.ui.render()
-                self.ui.sleep(1.5)
+                self.ui.sleep(self.trick_sleep_time)
 
         # Update Turn Order
         if attempts < ATTEMPTS_TILL_FAILURE:
@@ -309,7 +332,7 @@ class Pinochle:
 
         # Sleep at very end of trick
         self.ui.render()
-        self.ui.sleep(1.5)
+        self.ui.sleep(self.trick_sleep_time)
 
     def run(self):
         self.ui.render()
@@ -317,7 +340,5 @@ class Pinochle:
             self.ui.update_hands(self.hands)
             self.ui.render()
 
-p = Pinochle()
-p.run()
 
 
