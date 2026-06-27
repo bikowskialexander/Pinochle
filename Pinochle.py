@@ -18,7 +18,7 @@ from User_Opponenet import User_Opponent
 class Pinochle:
 
     def __init__(self) -> None:
-        self.players = [Opponent(), Opponent(), Opponent(), Opponent()]
+        self.players = [User_Opponent(), Opponent(), Opponent(), Opponent()]
         self.move_index = 0
         self.stage = "BID"
         self.current_bid = 240
@@ -29,6 +29,9 @@ class Pinochle:
 
         self.player_index = 1
         self.winner = -1
+        self.points_to_win = 500
+
+        self.round_point_values = [0,0]
 
         self.files = open("logs/log.txt", 'w')
 
@@ -56,6 +59,7 @@ class Pinochle:
         self.stage = "BID"
         self.tricks_left = 12 
         self.current_bid = 240
+        self.round_point_values = [0,0]
 
         # Reset scoreboard
         self._reset_scoreboard()
@@ -79,12 +83,24 @@ class Pinochle:
             self.players[i].messages.append(system_prompt)
 
     def step(self) -> dict:
+        print(self.point_values)
         if self.game_over() != -1:
-            print("Game won by", self.winner, "team")
+            print("Game won by", self.game_over(), "team")
             last_winner = self.winner
             self.setup()
             return last_winner
         if self.round_over():
+            index = 1
+            other_index = 0
+            if self.bid_taker_index == 0 or self.bid_taker_index == 2:
+                index = 0
+                other_index = 1
+            if self.round_point_values[index] < int(self.current_bid):
+                self.point_values[index] -= int(self.current_bid)
+                self.point_values[other_index] += self.round_point_values[other_index]
+            else:
+                self.point_values[index] += self.round_point_values[index]
+                self.point_values[other_index] += self.round_point_values[other_index]
             self.setup()
         self.files.close()
         self.files = open("logs/log.txt", 'a')
@@ -108,7 +124,7 @@ class Pinochle:
             self.clear_messages()
             self.ui.clear_table()
             self.do_tricks()
-        return -1
+        return self.game_over()
 
     def _add_to_logs(self, adding, player=""):
         self.files.write(adding + "\n")
@@ -231,17 +247,17 @@ class Pinochle:
                 else:
                     self.winner = 0
             if i == 0 or i == 2:
-                self.point_values[0] += self.meld_value(meld)
+                self.round_point_values[0] += self.meld_value(meld)
             else:
-                self.point_values[1] += self.meld_value(meld)
+                self.round_point_values[1] += self.meld_value(meld)
 
     def game_over(self):
         if self.round_over():
             if self.winner != -1:
                 return self.winner
-            elif self.point_values[0] >= 250:
+            elif self.point_values[0] >= self.points_to_win:
                 return 0
-            elif self.point_values[1] >= 250:
+            elif self.point_values[1] >= self.points_to_win:
                 return 1
         return -1
     
@@ -252,6 +268,16 @@ class Pinochle:
                     return False
         return True
     
+    def _add_trick_points(self):
+        points = 0
+        for i in range(4):
+            rank = self.played[i][1]
+            points += TRICK_VALUE_DICT[rank]
+        if self.move_index == 0 or self.move_index == 2:
+            self.round_point_values[0] += points
+        else:
+            self.round_point_values[1] += points
+
     def _set_move_index_to_winner_of_trick(self):
 
         # Set max to the rank of the first card
@@ -323,9 +349,10 @@ class Pinochle:
                 self.ui.render()
                 self.ui.sleep(self.trick_sleep_time)
 
-        # Update Turn Order
+        # Update Turn Order and add points
         if attempts < ATTEMPTS_TILL_FAILURE:
             self._set_move_index_to_winner_of_trick()
+            self._add_trick_points()
 
         # Update the number of tricks
         self.tricks_left -= 1
@@ -339,6 +366,6 @@ class Pinochle:
         while self.step() == -1:
             self.ui.update_hands(self.hands)
             self.ui.render()
-
+        return self.game_over()
 
 
