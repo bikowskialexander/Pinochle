@@ -45,6 +45,27 @@ MELD_POINTS = {"nine of trumps": NINES_POINTS,
                "pinochle": PINOCHLE_POINTS,
                "double pinochle": DOUBLE_PINOCHLE_POINTS} 
 
+# ========================================
+#              Tricks
+# ========================================
+
+ACE_TRICK = 11
+TEN_TRICK = 10
+KING_TRICK = 4
+QUEEN_TRICK = 3
+JACK_TRICK = 2
+NINE_TRICK = 0
+LAST_TRICK = 10
+
+TRICK_VALUE_DICT = {
+    'A':ACE_TRICK,
+    '10':TEN_TRICK,
+    'K':KING_TRICK,
+    'Q':QUEEN_TRICK,
+    'J':JACK_TRICK,
+    '9':NINE_TRICK
+}
+
 
 # ========================================
 #              Tested Models
