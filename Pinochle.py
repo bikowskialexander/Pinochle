@@ -40,6 +40,7 @@ class Pinochle:
         # Timing
         self.trick_sleep_time = 1.5
         self.bid_sleep_time = 1.0
+        self.trumps_sleep_time = 5.0
 
         for i in range(4):
             if self.players[i].ui == 1:
@@ -207,6 +208,12 @@ class Pinochle:
                 self.winner = 1
             else:
                 self.winner = 0
+
+        # Display selection
+        self.ui.set_displayed_trump(request.upper())
+        self.ui.display_trump_panel()
+        self.ui.sleep(self.trumps_sleep_time)
+        self.ui.clear_displayed_trump()
 
         return request.upper()
     

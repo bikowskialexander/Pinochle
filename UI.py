@@ -81,9 +81,10 @@ class PinochleUI:
         self.green_highlights = {'North': set(), 'South': set(), 'East': set(), 'West': set()}
         self.scores = {'North': 0, 'South': 0, 'East': 0, 'West': 0}
         
-        # New State Management Variables
-        self.bidder_highlight = {}       # Maps player keys to active color indices (1 or 2)
-        self.translucent_players = set()  # Set containing player keys that are currently faded out
+        # State Management Repositories
+        self.bidder_highlight = {}       
+        self.translucent_players = set()  
+        self.displayed_trump = None       # Holds string suit configuration token for center badge
         
         self.player_names = {
             'North': 'Bot North', 'South': 'Bot South', 
@@ -199,7 +200,7 @@ class PinochleUI:
         if player in self.scores:
             self.scores[player] = points
 
-    # --- NEW BIDDING HELPER METHODS ---
+    # --- BIDDING & TRUMP MANAGEMENT HOOKS ---
 
     def highlight_bidder(self, player, color_index=1):
         """Highlights a player's scoreboard box. Color index 1 = Gold, Index 2 = Blue."""
@@ -223,7 +224,16 @@ class PinochleUI:
         """Restores a player's scoreboard banner to normal full visibility."""
         self.translucent_players.discard(player)
 
-    # ----------------------------------
+    def set_displayed_trump(self, suit_name):
+        """Sets the trump suit to be displayed as a card table centerpiece badge."""
+        if suit_name:
+            self.displayed_trump = suit_name.upper()
+
+    def clear_displayed_trump(self):
+        """Clears the active table center trump suit badge."""
+        self.displayed_trump = None
+
+    # ----------------------------------------
 
     def update_hands(self, player_hands):
         for p in ['North', 'East', 'South', 'West']:
@@ -525,36 +535,45 @@ class PinochleUI:
                 x, y = offsets[player]
                 self._draw_card(x, y, rank, suit)
 
+    def _draw_trump_indicator(self):
+        """Paints a highly legible, premium central asset plate showing the declared trump suit."""
+        cx, cy = self.screen_w // 2, self.screen_h // 2
+        suit_lower = self.displayed_trump.lower()
+        symbol = SUIT_SYMBOLS.get(suit_lower, '')
+        color = SUIT_COLORS.get(suit_lower, TEXT_BLACK)
+        
+        text_surf = self.font_main.render(f"{symbol} {self.displayed_trump}", True, color)
+        text_rect = text_surf.get_rect(center=(cx, cy))
+        
+        badge_rect = text_rect.inflate(int(20 * self.scale), int(10 * self.scale))
+        shadow_rect = badge_rect.move(int(3 * self.scale), int(3 * self.scale))
+        
+        pygame.draw.rect(self.screen, SHADOW_COLOR, shadow_rect, border_radius=8)
+        pygame.draw.rect(self.screen, BUTTON_BG, badge_rect, border_radius=8)
+        pygame.draw.rect(self.screen, TEXT_BLACK, badge_rect, 1, border_radius=8)
+        self.screen.blit(text_surf, text_rect)
+
     def _render_hud_banner(self, text, base_center, rotation=0, player_key=None):
-        """Helper to create and draw alpha-layered HUD banners with custom highlights."""
         text_surf = self.font_main.render(text, True, (255, 255, 255))
         text_rect = text_surf.get_rect()
         
-        # Calculate banner sizing dimensions
         w = text_rect.width + int(24 * self.scale)
         h = text_rect.height + int(10 * self.scale)
         
-        # Generate dynamic hardware texture surface
         temp_surface = pygame.Surface((w, h), pygame.SRCALPHA)
-        
-        # 1. Base Container Box
         pygame.draw.rect(temp_surface, LABEL_BG, (0, 0, w, h), border_radius=8)
         
-        # 2. Dynamic Bidding Highlight Outlines
         if player_key in self.bidder_highlight:
             idx = self.bidder_highlight[player_key]
             ring_color = BID_COLOR_PRIMARY if idx == 1 else BID_COLOR_SECONDARY
             pygame.draw.rect(temp_surface, ring_color, (0, 0, w, h), int(3 * self.scale), border_radius=8)
             
-        # Blit baseline text characters to working surface
         text_rect.center = (w // 2, h // 2)
         temp_surface.blit(text_surf, text_rect)
         
-        # 3. Apply Pass Phase Translucency
         if player_key in self.translucent_players:
-            temp_surface.set_alpha(100) # Soft, readable pass dimming
+            temp_surface.set_alpha(100) 
             
-        # Handle coordinate rotation offsets
         if rotation != 0:
             temp_surface = pygame.transform.rotate(temp_surface, rotation)
             
@@ -562,7 +581,6 @@ class PinochleUI:
         self.screen.blit(temp_surface, final_rect)
 
     def draw_labels(self):
-        # Render North and South banners
         self._render_hud_banner(
             f"{self.player_names['North']}: {self.scores['North']}", 
             (self.screen_w // 2, self.pad_small), player_key='North'
@@ -574,7 +592,6 @@ class PinochleUI:
 
         side_margin_center = self.pad_large // 2 
         
-        # Render West and East banners with corresponding rotation vectors
         self._render_hud_banner(
             f"{self.player_names['West']}: {self.scores['West']}", 
             (side_margin_center, self.screen_h // 2), rotation=90, player_key='West'
@@ -600,6 +617,8 @@ class PinochleUI:
         elif current_bid is not None:
             self.display_bidding_panel(current_bid)
         else:
+            if self.displayed_trump:
+                self._draw_trump_indicator()
             self._draw_center_trick()
             
         pygame.display.flip()
