@@ -39,6 +39,7 @@ class Pinochle:
 
         # Timing
         self.trick_sleep_time = 1.5
+        self.bid_sleep_time = 1.0
 
         for i in range(4):
             if self.players[i].ui == 1:
@@ -68,6 +69,7 @@ class Pinochle:
         for i in range(4):
             direction = index_to_Direction_name(i)
             self.ui.set_score(direction, 0)
+            self.ui.reset_score_transparency(direction)
 
     def define_order(self):
         self.order = []
@@ -135,13 +137,23 @@ class Pinochle:
 
     def do_bid(self):
         player_left_count = 4
-        players_left = {0:True, 1:True, 2:True, 3:True}
+        players_left = {0: True, 1: True, 2: True, 3: True}
         while True:
             for i in self.order:
                 if player_left_count > 1:
                     if players_left[i]:
+
+                        # Highlight the bidder
+                        player_direction = index_to_Direction_name(i)
+                        self.ui.highlight_bidder(player_direction)
+                        self.ui.render()
+
+                        # Get the bid from the player
                         bid = self.players[i].get_bid(self.current_bid, self.hands[i])
+                        
+                        # Add the bid from the player to the log
                         self._add_to_logs(bid)
+
                         # Number of attempts the llm has taken
                         attempts = 1
 
@@ -152,6 +164,7 @@ class Pinochle:
                             attempts += 1
                             
                             self._add_to_logs(bid)
+
                         if attempts >= ATTEMPTS_TILL_FAILURE:
                             if i == 0 or i == 2:
                                 self.winner = 1
@@ -164,6 +177,14 @@ class Pinochle:
                         else:
                             players_left[i] = False
                             player_left_count -= 1
+
+                        # Pause the display for a time
+                        self.ui.sleep(self.bid_sleep_time)
+                        self.ui.remove_bidder_highlight(player_direction)
+
+                        if bid == "PASS":
+                            self.ui.set_score_translucent(player_direction)
+                        
                 else:
                     for i in range(4):
                         if players_left[i]:

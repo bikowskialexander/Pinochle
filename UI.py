@@ -19,13 +19,17 @@ BG_COLOR = (24, 105, 48)         # Rich classic felt green
 SHADOW_COLOR = (14, 56, 28)       # Deep table shading color for dropshadow depth
 LABEL_BG = (16, 66, 32)          # Dark velvet tone for player HUD banners
 CARD_COLOR = (255, 255, 255)
-TEXT_BLACK = (25., 25, 25)       # High-contrast premium off-black
+TEXT_BLACK = (25, 25, 25)       # High-contrast premium off-black
 TEXT_RED = (200, 30, 35)         # Deeper card-stock crimson
 MELD_COLOR = (212, 175, 55)      # Metallic gold leaf border
 SELECTION_COLOR = (46, 204, 113)  # Vibrant emerald choice green
 LEGAL_PLAY_COLOR = (241, 196, 15) # Warm amber play yellow
 HOVER_COLOR = (220, 245, 220) 
 BUTTON_BG = (245, 242, 235)      # Soft linen cream paper tone
+
+# Bidding Highlight Profiles
+BID_COLOR_PRIMARY = (241, 196, 15)   # Color Index 1: Active Gold Ring
+BID_COLOR_SECONDARY = (52, 152, 219) # Color Index 2: Electric Blue Ring
 
 # Sorting / Display Order
 RANK_ORDER = {'A': 5, '10': 4, 'K': 3, 'Q': 2, 'J': 1, '9': 0}
@@ -76,6 +80,10 @@ class PinochleUI:
         self.meld_highlights = {'North': set(), 'South': set(), 'East': set(), 'West': set()}
         self.green_highlights = {'North': set(), 'South': set(), 'East': set(), 'West': set()}
         self.scores = {'North': 0, 'South': 0, 'East': 0, 'West': 0}
+        
+        # New State Management Variables
+        self.bidder_highlight = {}       # Maps player keys to active color indices (1 or 2)
+        self.translucent_players = set()  # Set containing player keys that are currently faded out
         
         self.player_names = {
             'North': 'Bot North', 'South': 'Bot South', 
@@ -191,6 +199,32 @@ class PinochleUI:
         if player in self.scores:
             self.scores[player] = points
 
+    # --- NEW BIDDING HELPER METHODS ---
+
+    def highlight_bidder(self, player, color_index=1):
+        """Highlights a player's scoreboard box. Color index 1 = Gold, Index 2 = Blue."""
+        if player in self.hands:
+            self.bidder_highlight[player] = color_index
+
+    def remove_bidder_highlight(self, player):
+        """Removes the active bidding highlight border from a player."""
+        if player in self.bidder_highlight:
+            del self.bidder_highlight[player]
+
+    def set_score_translucent(self, player, translucent=True):
+        """Mutes a player's score banner transparency (useful when they Pass)."""
+        if player in self.hands:
+            if translucent:
+                self.translucent_players.add(player)
+            else:
+                self.translucent_players.discard(player)
+
+    def reset_score_transparency(self, player):
+        """Restores a player's scoreboard banner to normal full visibility."""
+        self.translucent_players.discard(player)
+
+    # ----------------------------------
+
     def update_hands(self, player_hands):
         for p in ['North', 'East', 'South', 'West']:
             self.hands[p] = []
@@ -270,7 +304,6 @@ class PinochleUI:
         bid_rect = pygame.Rect(cx + gap // 2, cy - btn_h // 2, btn_w, btn_h)
         mouse_pos = pygame.mouse.get_pos()
 
-        # Pass Button & Drop Shadow
         pass_shadow = pass_rect.move(int(4 * self.scale), int(4 * self.scale))
         pygame.draw.rect(self.screen, SHADOW_COLOR, pass_shadow, border_radius=10)
         pass_bg = HOVER_COLOR if pass_rect.collidepoint(mouse_pos) else BUTTON_BG
@@ -280,7 +313,6 @@ class PinochleUI:
         self.screen.blit(pass_surf, pass_surf.get_rect(center=pass_rect.center))
         self.clickable_rects.append((pass_rect, "BID_ACTION:PASS"))
 
-        # Bid Button & Drop Shadow
         bid_shadow = bid_rect.move(int(4 * self.scale), int(4 * self.scale))
         pygame.draw.rect(self.screen, SHADOW_COLOR, bid_shadow, border_radius=10)
         bid_bg = HOVER_COLOR if bid_rect.collidepoint(mouse_pos) else BUTTON_BG
@@ -357,7 +389,6 @@ class PinochleUI:
         suit = suit.lower()
         card_rect = pygame.Rect(x, y, self.card_w, self.card_h)
         
-        # Felt Table Drop Shadow mapping pass
         shadow_rect = card_rect.move(int(3 * self.scale), int(3 * self.scale))
         pygame.draw.rect(self.screen, SHADOW_COLOR, shadow_rect, border_radius=5)
         
@@ -369,7 +400,6 @@ class PinochleUI:
         else:
             pygame.draw.rect(self.screen, border_color, card_rect, border_thickness, border_radius=5)
 
-        # Crisp Card Back Pinstripe patterns
         if hidden:
             back_color = (220, 75, 80) 
             inner_rect = card_rect.inflate(-int(8 * self.scale), -int(8 * self.scale))
@@ -495,37 +525,64 @@ class PinochleUI:
                 x, y = offsets[player]
                 self._draw_card(x, y, rank, suit)
 
+    def _render_hud_banner(self, text, base_center, rotation=0, player_key=None):
+        """Helper to create and draw alpha-layered HUD banners with custom highlights."""
+        text_surf = self.font_main.render(text, True, (255, 255, 255))
+        text_rect = text_surf.get_rect()
+        
+        # Calculate banner sizing dimensions
+        w = text_rect.width + int(24 * self.scale)
+        h = text_rect.height + int(10 * self.scale)
+        
+        # Generate dynamic hardware texture surface
+        temp_surface = pygame.Surface((w, h), pygame.SRCALPHA)
+        
+        # 1. Base Container Box
+        pygame.draw.rect(temp_surface, LABEL_BG, (0, 0, w, h), border_radius=8)
+        
+        # 2. Dynamic Bidding Highlight Outlines
+        if player_key in self.bidder_highlight:
+            idx = self.bidder_highlight[player_key]
+            ring_color = BID_COLOR_PRIMARY if idx == 1 else BID_COLOR_SECONDARY
+            pygame.draw.rect(temp_surface, ring_color, (0, 0, w, h), int(3 * self.scale), border_radius=8)
+            
+        # Blit baseline text characters to working surface
+        text_rect.center = (w // 2, h // 2)
+        temp_surface.blit(text_surf, text_rect)
+        
+        # 3. Apply Pass Phase Translucency
+        if player_key in self.translucent_players:
+            temp_surface.set_alpha(100) # Soft, readable pass dimming
+            
+        # Handle coordinate rotation offsets
+        if rotation != 0:
+            temp_surface = pygame.transform.rotate(temp_surface, rotation)
+            
+        final_rect = temp_surface.get_rect(center=base_center)
+        self.screen.blit(temp_surface, final_rect)
+
     def draw_labels(self):
-        # Premium trans-velvet container banners for horizontal labels
-        h_labels = [
-            (f"{self.player_names['North']}: {self.scores['North']}", self.screen_w//2, self.pad_small),
-            (f"{self.player_names['South']}: {self.scores['South']}", self.screen_w//2, self.screen_h - self.pad_small),
-        ]
-        for text, x, y in h_labels:
-            surf = self.font_main.render(text, True, (255, 255, 255))
-            rect = surf.get_rect(center=(x, y))
-            banner = rect.inflate(int(24 * self.scale), int(10 * self.scale))
-            pygame.draw.rect(self.screen, LABEL_BG, banner, border_radius=8)
-            self.screen.blit(surf, rect)
+        # Render North and South banners
+        self._render_hud_banner(
+            f"{self.player_names['North']}: {self.scores['North']}", 
+            (self.screen_w // 2, self.pad_small), player_key='North'
+        )
+        self._render_hud_banner(
+            f"{self.player_names['South']}: {self.scores['South']}", 
+            (self.screen_w // 2, self.screen_h - self.pad_small), player_key='South'
+        )
 
         side_margin_center = self.pad_large // 2 
         
-        # Premium trans-velvet container banners for side labels
-        west_text = f"{self.player_names['West']}: {self.scores['West']}"
-        west_surf = self.font_main.render(west_text, True, (255, 255, 255))
-        west_rotated = pygame.transform.rotate(west_surf, 90)
-        west_rect = west_rotated.get_rect(center=(side_margin_center, self.screen_h // 2))
-        west_banner = west_rect.inflate(int(10 * self.scale), int(24 * self.scale))
-        pygame.draw.rect(self.screen, LABEL_BG, west_banner, border_radius=8)
-        self.screen.blit(west_rotated, west_rect)
-
-        east_text = f"{self.player_names['East']}: {self.scores['East']}"
-        east_surf = self.font_main.render(east_text, True, (255, 255, 255))
-        east_rotated = pygame.transform.rotate(east_surf, -90)
-        east_rect = east_rotated.get_rect(center=(self.screen_w - side_margin_center, self.screen_h // 2))
-        east_banner = east_rect.inflate(int(10 * self.scale), int(24 * self.scale))
-        pygame.draw.rect(self.screen, LABEL_BG, east_banner, border_radius=8)
-        self.screen.blit(east_rotated, east_rect)
+        # Render West and East banners with corresponding rotation vectors
+        self._render_hud_banner(
+            f"{self.player_names['West']}: {self.scores['West']}", 
+            (side_margin_center, self.screen_h // 2), rotation=90, player_key='West'
+        )
+        self._render_hud_banner(
+            f"{self.player_names['East']}: {self.scores['East']}", 
+            (self.screen_w - side_margin_center, self.screen_h // 2), rotation=-90, player_key='East'
+        )
 
     def _draw_scene(self, current_bid=None, show_trump_panel=False, show_passing_panel=False):
         self.screen.fill(BG_COLOR)
