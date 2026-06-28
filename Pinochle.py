@@ -69,6 +69,7 @@ class Pinochle:
         for i in range(4):
             direction = index_to_Direction_name(i)
             self.ui.set_score(direction, 0)
+            self.ui.reset_score_transparency(direction)
 
     def define_order(self):
         self.order = []
@@ -150,10 +151,6 @@ class Pinochle:
                         # Get the bid from the player
                         bid = self.players[i].get_bid(self.current_bid, self.hands[i])
                         
-                        # Pause the display for a time
-                        self.ui.sleep(self.bid_sleep_time)
-                        self.ui.remove_bidder_highlight(player_direction)
-
                         # Add the bid from the player to the log
                         self._add_to_logs(bid)
 
@@ -167,6 +164,7 @@ class Pinochle:
                             attempts += 1
                             
                             self._add_to_logs(bid)
+
                         if attempts >= ATTEMPTS_TILL_FAILURE:
                             if i == 0 or i == 2:
                                 self.winner = 1
@@ -179,6 +177,14 @@ class Pinochle:
                         else:
                             players_left[i] = False
                             player_left_count -= 1
+
+                        # Pause the display for a time
+                        self.ui.sleep(self.bid_sleep_time)
+                        self.ui.remove_bidder_highlight(player_direction)
+
+                        if bid == "PASS":
+                            self.ui.set_score_translucent(player_direction)
+                        
                 else:
                     for i in range(4):
                         if players_left[i]:
