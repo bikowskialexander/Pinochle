@@ -38,19 +38,11 @@ class Pinochle:
         self.has_user = True
 
         # Timing
-        self.trick_sleep_time = 0
-        self.bid_sleep_time = 0
-        self.trumps_sleep_time = 0
+        self.trick_sleep_time = 1.25
+        self.bid_sleep_time = 0.75
+        self.trumps_sleep_time = 3.0
 
-        for i in range(4):
-            if self.players[i].ui == 1:
-                self.players[i].ui = self.ui 
-                direction = index_to_Direction_name(i)
-                self.ui.is_user[direction] = True
-                self.ui.user_direction = direction
-                self.has_user = True
-
-        self.setup()
+        self.first_init = True
 
     def setup(self):
         self.hands = []
@@ -62,6 +54,15 @@ class Pinochle:
         self.tricks_left = 12 
         self.current_bid = 240
         self.round_point_values = [0,0]
+
+        # Set board and opponents
+        for i in range(4):
+            if self.players[i].ui == 1:
+                self.players[i].ui = self.ui 
+                direction = index_to_Direction_name(i)
+                self.ui.is_user[direction] = True
+                self.ui.user_direction = direction
+                self.has_user = True
         
         # Reset scoreboards
         self._reset_scoreboard()
@@ -90,6 +91,10 @@ class Pinochle:
             self.players[i].messages.append(system_prompt)
 
     def step(self) -> dict:
+
+        if self.first_init:
+            self.setup()
+            self.first_init = False
 
         # Work to do when the round is over
         if self.round_over():
