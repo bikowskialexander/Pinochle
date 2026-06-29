@@ -80,11 +80,12 @@ class PinochleUI:
         self.meld_highlights = {'North': set(), 'South': set(), 'East': set(), 'West': set()}
         self.green_highlights = {'North': set(), 'South': set(), 'East': set(), 'West': set()}
         self.scores = {'North': 0, 'South': 0, 'East': 0, 'West': 0}
+        self.team_scores = {'N/S': 0, 'E/W': 0}
         
         # State Management Repositories
         self.bidder_highlight = {}       
         self.translucent_players = set()  
-        self.displayed_trump = None       # Holds string suit configuration token for center badge
+        self.displayed_trump = None       
         
         self.player_names = {
             'North': 'Bot North', 'South': 'Bot South', 
@@ -108,6 +109,7 @@ class PinochleUI:
         self.user_direction = None
 
     def _is_player_user(self, player_key) -> bool:
+        """Robust multi-type safety wrapper tracking active human player configurations."""
         if self.user_direction == player_key:
             return True
         if isinstance(self.user_direction, int):
@@ -120,6 +122,7 @@ class PinochleUI:
         return False
 
     def _get_active_user_key(self) -> str:
+        """Locates the current active human seat string key wrapper fallback safely."""
         for k in ['South', 'North', 'East', 'West']:
             if self._is_player_user(k):
                 return k
@@ -162,7 +165,8 @@ class PinochleUI:
         return action
 
     def get_user_passing_choice(self) -> list:
-        self.green_highlights[self.user_direction] = set()
+        user_key = self._get_active_user_key()
+        self.green_highlights[user_key] = set()
         self.passing_confirmed = False
         self.is_passing_phase = True
         self._pending_user_click = None
@@ -171,12 +175,13 @@ class PinochleUI:
             self.render(show_passing_panel=True)
 
         self.is_passing_phase = False
-        chosen_cards = [self.hands[self.user_direction][idx] for idx in self.green_highlights[self.user_direction]]
-        self.green_highlights[self.user_direction] = set()
+        chosen_cards = [self.hands[user_key][idx] for idx in self.green_highlights[user_key]]
+        self.green_highlights[user_key] = set()
         return chosen_cards
 
     def get_user_trick_choice(self, legal_cards) -> tuple:
-        if self.user_direction is None:
+        user_key = self._get_active_user_key()
+        if user_key is None:
             return legal_cards[0] if legal_cards else None
 
         self.legal_trick_cards = {(str(suit).upper(), str(rank).upper()) for suit, rank in legal_cards}
@@ -191,6 +196,48 @@ class PinochleUI:
         self.legal_trick_cards = set()
         return self.chosen_trick_card
 
+    def display_winner(self, winner_text):
+        """FORCE FREEZE LOOP: Freezes execution and overlays a victory banner panel."""
+        dismissed = False
+        while not dismissed:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit(); sys.exit()
+                if event.type in (pygame.MOUSEBUTTONDOWN, pygame.KEYDOWN):
+                    dismissed = True
+            
+            self.screen.fill(BG_COLOR)
+            self.draw_labels()
+            self._draw_team_scoreboard()
+            self._draw_hand_horizontal('North', self.pad_large)
+            self._draw_hand_horizontal('South', self.screen_h - self.card_h - self.pad_large)
+            self._draw_hand_grid('West', is_left_side=True)
+            self._draw_hand_grid('East', is_left_side=False)
+            if self.displayed_trump:
+                self._draw_trump_indicator()
+            else:
+                self._draw_center_trick()
+            
+            cx, cy = self.screen_w // 2, self.screen_h // 2
+            
+            main_surf = self.font_main.render(str(winner_text).upper(), True, TEXT_BLACK)
+            main_rect = main_surf.get_rect(center=(cx, cy))
+            
+            w = main_surf.get_width() + int(64 * self.scale)
+            h = int(80 * self.scale)
+            
+            box_rect = pygame.Rect(cx - w // 2, cy - h // 2, w, h)
+            shadow_rect = box_rect.move(int(5 * self.scale), int(5 * self.scale))
+            
+            pygame.draw.rect(self.screen, SHADOW_COLOR, shadow_rect, border_radius=15)
+            pygame.draw.rect(self.screen, BUTTON_BG, box_rect, border_radius=15)
+            pygame.draw.rect(self.screen, MELD_COLOR, box_rect, int(3 * self.scale), border_radius=15)
+            
+            self.screen.blit(main_surf, main_rect)
+            
+            pygame.display.flip()
+            self.clock.tick(30)
+
     def set_player_names(self, names_dict):
         for pos, name in names_dict.items():
             if pos in self.player_names:
@@ -200,20 +247,19 @@ class PinochleUI:
         if player in self.scores:
             self.scores[player] = points
 
-    # --- BIDDING & TRUMP MANAGEMENT HOOKS ---
+    def set_team_scores(self, ns_score, ew_score):
+        self.team_scores['N/S'] = ns_score
+        self.team_scores['E/W'] = ew_score
 
     def highlight_bidder(self, player, color_index=1):
-        """Highlights a player's scoreboard box. Color index 1 = Gold, Index 2 = Blue."""
         if player in self.hands:
             self.bidder_highlight[player] = color_index
 
     def remove_bidder_highlight(self, player):
-        """Removes the active bidding highlight border from a player."""
         if player in self.bidder_highlight:
             del self.bidder_highlight[player]
 
     def set_score_translucent(self, player, translucent=True):
-        """Mutes a player's score banner transparency (useful when they Pass)."""
         if player in self.hands:
             if translucent:
                 self.translucent_players.add(player)
@@ -221,19 +267,14 @@ class PinochleUI:
                 self.translucent_players.discard(player)
 
     def reset_score_transparency(self, player):
-        """Restores a player's scoreboard banner to normal full visibility."""
         self.translucent_players.discard(player)
 
     def set_displayed_trump(self, suit_name):
-        """Sets the trump suit to be displayed as a card table centerpiece badge."""
         if suit_name:
             self.displayed_trump = suit_name.upper()
 
     def clear_displayed_trump(self):
-        """Clears the active table center trump suit badge."""
         self.displayed_trump = None
-
-    # ----------------------------------------
 
     def update_hands(self, player_hands):
         for p in ['North', 'East', 'South', 'West']:
@@ -258,8 +299,9 @@ class PinochleUI:
             
             self.center_cards[player] = (suit, rank)
             
+            check_lower = (suit.lower(), rank)
             if player in self.meld_highlights:
-                self.meld_highlights[player] = set()
+                self.meld_highlights[player].discard(check_lower)
             self.green_highlights[player] = set()
             
     def display_meld(self, player, card_list, points):
@@ -368,7 +410,8 @@ class PinochleUI:
 
     def display_passing_panel(self):
         cx, cy = self.screen_w // 2, self.screen_h // 2
-        selected_count = len(self.green_highlights[self.user_direction])
+        user_key = self._get_active_user_key()
+        selected_count = len(self.green_highlights[user_key])
         
         guide_text = f"Select 4 Cards to Pass ({selected_count}/4)"
         guide_surf = self.font_main.render(guide_text, True, CARD_COLOR)
@@ -442,7 +485,8 @@ class PinochleUI:
         check_tuple = (suit, rank)
         check_tuple_lower = (suit.lower(), rank)
 
-        if self.is_trick_phase and player == self.user_direction:
+        # FIX 1: Repaired conditional check to call the robust player layout helper method
+        if self.is_trick_phase and self._is_player_user(player):
             if check_tuple in self.legal_trick_cards or check_tuple_lower in self.legal_trick_cards:
                 return LEGAL_PLAY_COLOR, 5
 
@@ -457,7 +501,8 @@ class PinochleUI:
         total_width = (len(cards) * (self.card_w + self.margin)) - self.margin
         start_x = (self.screen_w - total_width) // 2
 
-        is_user = (self.user_direction is not None and player_key == self.user_direction)
+        # FIX 2: Swapped raw direct check mapping logic for player key validation tool
+        is_user = self._is_player_user(player_key)
         hidden = not is_user
 
         for i, (suit, rank) in enumerate(cards):
@@ -495,7 +540,8 @@ class PinochleUI:
         else:
             start_x = self.screen_w - (self.card_w * 2 + self.margin) - self.pad_large
 
-        is_user = (self.user_direction is not None and player_key == self.user_direction)
+        # FIX 3: Swapped raw direct check mapping logic for player key validation tool
+        is_user = self._is_player_user(player_key)
         hidden = not is_user
 
         for i, (suit, rank) in enumerate(cards):
@@ -536,7 +582,6 @@ class PinochleUI:
                 self._draw_card(x, y, rank, suit)
 
     def _draw_trump_indicator(self):
-        """Paints a highly legible, premium central asset plate showing the declared trump suit."""
         cx, cy = self.screen_w // 2, self.screen_h // 2
         suit_lower = self.displayed_trump.lower()
         symbol = SUIT_SYMBOLS.get(suit_lower, '')
@@ -552,6 +597,26 @@ class PinochleUI:
         pygame.draw.rect(self.screen, BUTTON_BG, badge_rect, border_radius=8)
         pygame.draw.rect(self.screen, TEXT_BLACK, badge_rect, 1, border_radius=8)
         self.screen.blit(text_surf, text_rect)
+
+    def _draw_team_scoreboard(self):
+        ns_text = f"Team N/S: {self.team_scores['N/S']}"
+        ew_text = f"Team E/W: {self.team_scores['E/W']}"
+        
+        ns_surf = self.font_main.render(ns_text, True, (255, 255, 255))
+        ew_surf = self.font_main.render(ew_text, True, (255, 255, 255))
+        
+        max_w = max(ns_surf.get_width(), ew_surf.get_width()) + int(24 * self.scale)
+        box_h = int(75 * self.scale)
+        
+        box_rect = pygame.Rect(self.pad_small, self.pad_small, max_w, box_h)
+        shadow_rect = box_rect.move(int(3 * self.scale), int(3 * self.scale))
+        
+        pygame.draw.rect(self.screen, SHADOW_COLOR, shadow_rect, border_radius=8)
+        pygame.draw.rect(self.screen, LABEL_BG, box_rect, border_radius=8)
+        pygame.draw.rect(self.screen, MELD_COLOR, box_rect, 1, border_radius=8) 
+        
+        self.screen.blit(ns_surf, (box_rect.x + int(12 * self.scale), box_rect.y + int(10 * self.scale)))
+        self.screen.blit(ew_surf, (box_rect.x + int(12 * self.scale), box_rect.y + int(40 * self.scale)))
 
     def _render_hud_banner(self, text, base_center, rotation=0, player_key=None):
         text_surf = self.font_main.render(text, True, (255, 255, 255))
@@ -605,6 +670,7 @@ class PinochleUI:
         self.screen.fill(BG_COLOR)
         self.clickable_rects = [] 
         self.draw_labels()
+        self._draw_team_scoreboard()
         self._draw_hand_horizontal('North', self.pad_large)
         self._draw_hand_horizontal('South', self.screen_h - self.card_h - self.pad_large)
         self._draw_hand_grid('West', is_left_side=True)
@@ -657,7 +723,8 @@ class PinochleUI:
                                     if len(self.green_highlights[seat_key]) < 4:
                                         self.green_highlights[seat_key].add(card_index)
                             elif self.is_trick_phase:
-                                if seat_key == self.user_direction and match_key in self.legal_trick_cards:
+                                # FIX 4: Patched turn event checking condition loop safely with player key validator tool
+                                if self._is_player_user(seat_key) and match_key in self.legal_trick_cards:
                                     self.chosen_trick_card = normalized_card
                             else:
                                 self._pending_user_click = normalized_card

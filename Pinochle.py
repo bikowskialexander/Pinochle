@@ -18,7 +18,7 @@ from User_Opponenet import User_Opponent
 class Pinochle:
 
     def __init__(self) -> None:
-        self.players = [User_Opponent(), Opponent(), Opponent(), Opponent()]
+        self.players = [Opponent(), Opponent(), Opponent(), Opponent()]
         self.move_index = 0
         self.stage = "BID"
         self.current_bid = 240
@@ -29,7 +29,7 @@ class Pinochle:
 
         self.player_index = 1
         self.winner = -1
-        self.points_to_win = 500
+        self.points_to_win = 250
 
         self.round_point_values = [0,0]
 
@@ -38,19 +38,11 @@ class Pinochle:
         self.has_user = True
 
         # Timing
-        self.trick_sleep_time = 1.5
-        self.bid_sleep_time = 1.0
-        self.trumps_sleep_time = 5.0
+        self.trick_sleep_time = 1.25
+        self.bid_sleep_time = 0.75
+        self.trumps_sleep_time = 3.0
 
-        for i in range(4):
-            if self.players[i].ui == 1:
-                self.players[i].ui = self.ui 
-                direction = index_to_Direction_name(i)
-                self.ui.is_user[direction] = True
-                self.ui.user_direction = direction
-                self.has_user = True
-
-        self.setup()
+        self.first_init = True
 
     def setup(self):
         self.hands = []
@@ -63,8 +55,21 @@ class Pinochle:
         self.current_bid = 240
         self.round_point_values = [0,0]
 
-        # Reset scoreboard
+        # Set board and opponents
+        for i in range(4):
+            if self.players[i].ui == 1:
+                self.players[i].ui = self.ui 
+                direction = index_to_Direction_name(i)
+                self.ui.is_user[direction] = True
+                self.ui.user_direction = direction
+                self.has_user = True
+        
+        # Reset scoreboards
         self._reset_scoreboard()
+        self.ui.set_team_scores(self.point_values[0], self.point_values[1])
+
+        # Reset Center
+        self.ui.clear_table()
 
     def _reset_scoreboard(self):
         for i in range(4):
@@ -86,12 +91,12 @@ class Pinochle:
             self.players[i].messages.append(system_prompt)
 
     def step(self) -> dict:
-        print(self.point_values)
-        if self.game_over() != -1:
-            print("Game won by", self.game_over(), "team")
-            last_winner = self.winner
+
+        if self.first_init:
             self.setup()
-            return last_winner
+            self.first_init = False
+
+        # Work to do when the round is over
         if self.round_over():
             index = 1
             other_index = 0
@@ -104,13 +109,26 @@ class Pinochle:
             else:
                 self.point_values[index] += self.round_point_values[index]
                 self.point_values[other_index] += self.round_point_values[other_index]
+
+            # Update team scores
+            self.ui.set_team_scores(self.point_values[0], self.point_values[1])
+            
+            # Work to do if the game is over
+            if self.game_over() != -1:
+                print("Game won by", self.game_over(), "team")
+                last_winner = self.game_over()
+                self.setup()
+                return last_winner
+
+            # Reset the board
             self.setup()
+
         self.files.close()
         self.files = open("logs/log.txt", 'a')
         print(self.stage)
         self.define_order()
         if self.stage == "BID":
-            self.bid_taker_index = self.do_bid()
+            self.bid_taker_index = int(self.do_bid())
             if self.bid_taker_index != None:
                 self.ui.set_score(['North', 'East', 'South', 'West'][self.bid_taker_index], self.current_bid)
             self.stage = "TRUMPS"
