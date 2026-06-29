@@ -90,13 +90,7 @@ class Pinochle:
             self.players[i].messages.append(system_prompt)
 
     def step(self) -> dict:
-        print(self.point_values)
-        if self.game_over() != -1:
-            print("Game won by", self.game_over(), "team")
-            last_winner = self.game_over()
-            self.setup()
-            return last_winner
-        
+
         # Work to do when the round is over
         if self.round_over():
             index = 1
@@ -114,9 +108,16 @@ class Pinochle:
             # Update team scores
             self.ui.set_team_scores(self.point_values[0], self.point_values[1])
             
+            # Work to do if the game is over
+            if self.game_over() != -1:
+                print("Game won by", self.game_over(), "team")
+                last_winner = self.game_over()
+                self.setup()
+                return last_winner
+
             # Reset the board
             self.setup()
-        
+
         self.files.close()
         self.files = open("logs/log.txt", 'a')
         print(self.stage)
