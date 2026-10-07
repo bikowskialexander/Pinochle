@@ -125,7 +125,7 @@ class Pinochle:
 
         self.files.close()
         self.files = open("logs/log.txt", 'a')
-        print(self.stage)
+        self._add_to_logs("STAGE:" + self.stage)
         self.define_order()
         if self.stage == "BID":
             self.bid_taker_index = int(self.do_bid())
@@ -171,7 +171,7 @@ class Pinochle:
                         bid = self.players[i].get_bid(self.current_bid, self.hands[i])
                         
                         # Add the bid from the player to the log
-                        self._add_to_logs(bid)
+                        self._add_to_logs(bid, str(i))
 
                         # Number of attempts the llm has taken
                         attempts = 1
@@ -182,7 +182,7 @@ class Pinochle:
                             # Add attempt
                             attempts += 1
                             
-                            self._add_to_logs(bid)
+                            self._add_to_logs(bid, str(i))
 
                         if attempts >= ATTEMPTS_TILL_FAILURE:
                             if i == 0 or i == 2:
@@ -212,12 +212,12 @@ class Pinochle:
 
     def do_trumps(self):
         request = self.players[self.bid_taker_index].get_trumps(self.hands[self.bid_taker_index]) 
-        self._add_to_logs(request)
+        self._add_to_logs(request, str(self.bid_taker_index))
 
         attempts = 1
         while not checks.is_a_suit(request) and attempts < ATTEMPTS_TILL_FAILURE:
             request = self.players[self.bid_taker_index].get_trumps(self.hands[self.bid_taker_index]) 
-            self._add_to_logs(request)
+            self._add_to_logs(request, str(self.bid_taker_index))
             attempts += 1
 
         # If too many attempts taken, the bidding team loses
@@ -237,11 +237,11 @@ class Pinochle:
     
     def get_valid_pass(self, index):
         request = self.players[index].get_pass(self.hands[index], self.trumps).upper()
-        self._add_to_logs(request)
+        self._add_to_logs(request, str(index))
         attempts = 1
         while not checks.check_passed(self.hands[index], request) and attempts < ATTEMPTS_TILL_FAILURE:
             request = self.players[index].get_pass(self.hands[index], self.trumps, PASS_FAILURE_MESSAGE).upper()
-            self._add_to_logs(request)
+            self._add_to_logs(request, str(index))
             attempts += 1
         if attempts >= ATTEMPTS_TILL_FAILURE:
             if index == 0 or index == 2:
@@ -367,13 +367,13 @@ class Pinochle:
 
             # First attempt to get trick
             trick = self.players[i].get_tricks(self.hands[i], self.trumps, self.played) 
-            self._add_to_logs(trick)
+            self._add_to_logs(trick, str(i))
             attempts = 1
 
             # Future attempts
             while attempts < ATTEMPTS_TILL_FAILURE and not checks.check_trick(self.played, self.hands[i], trick, self.trumps):
                 trick = self.players[i].get_tricks(self.hands[i], self.trumps, self.played, TRICK_FAILURE_MESSAGE + trick) 
-                self._add_to_logs(trick)
+                self._add_to_logs(trick, str(i))
                 attempts += 1
 
             # If valid response could not be generated

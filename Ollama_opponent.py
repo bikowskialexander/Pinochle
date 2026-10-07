@@ -82,9 +82,7 @@ class Ollama_Opponent(Opponent):
     
     def get_meld(self, hand, trumps, additional_message="") -> str:
         import Deck
-        Deck.print_deck(hand)
-        print(trumps)
-        print()
+
         # Read in file for meld prompt
         meld_file = open("Prompts/Meld.txt", 'r')
         new_message_content = meld_file.read()
