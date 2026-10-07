@@ -716,7 +716,6 @@ class PinochleUI:
                             match_key = (str(suit_str).upper(), str(rank_str).upper())
 
                             if self.is_passing_phase:
-                                print("Passing")
                                 if card_index in self.green_highlights[seat_key]:
                                     self.green_highlights[seat_key].remove(card_index)
                                 else:
